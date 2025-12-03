@@ -40,9 +40,29 @@ function TransactionModal({
   initialHours?: number;
   initialDescription?: string;
 }) {
-  const [date, setDate] = useState<string>(() => initialDate ?? new Date().toISOString().slice(0, 10));
-  const [hours, setHours] = useState<number>(initialHours ?? 0);
-  const [description, setDescription] = useState(initialDescription ?? '');
+  const [date, setDate] = useState<string>(initialDate ?? new Date().toISOString().slice(0, 10));
+  const [hours, setHours] = useState<number>(initialHours ?? 1);
+  const [description, setDescription] = useState<string>(initialDescription ?? '');
+  const [errors, setErrors] = useState<{ date?: string; hours?: string; description?: string }>({});
+
+  function validate(current: { date: string; hours: number; description: string }) {
+    const e: { date?: string; hours?: string; description?: string } = {};
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(current.date)) {
+      e.date = 'Datum muss im Format YYYY-MM-DD sein';
+    }
+    if (!Number.isFinite(current.hours) || current.hours <= 0) {
+      e.hours = 'Stunden müssen eine positive Zahl sein';
+    }
+    if (!current.description || current.description.trim().length === 0) {
+      e.description = 'Beschreibung darf nicht leer sein';
+    }
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
+  useEffect(() => {
+    validate({ date, hours, description });
+  }, [date, hours, description]);
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={onClose}>
@@ -59,6 +79,7 @@ function TransactionModal({
               value={date}
               onChange={(e) => setDate(e.target.value)}
             />
+            {errors.date && <div className="mt-1 text-sm text-red-600">{errors.date}</div>}
           </label>
           <label className="block">
             <span className="text-sm font-medium text-gray-900">Stunden (Dezimal)</span>
@@ -67,8 +88,13 @@ function TransactionModal({
               step="0.25"
               className="w-full mt-1 p-2 border border-gray-300 rounded bg-white text-gray-900"
               value={hours}
-              onChange={(e) => setHours(parseFloat(e.target.value))}
+              onChange={(e) => {
+                const v = e.target.value;
+                const num = v === '' ? NaN : parseFloat(v);
+                setHours(num);
+              }}
             />
+            {errors.hours && <div className="mt-1 text-sm text-red-600">{errors.hours}</div>}
           </label>
           <label className="block">
             <span className="text-sm font-medium text-gray-900">Beschreibung</span>
@@ -78,6 +104,7 @@ function TransactionModal({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+            {errors.description && <div className="mt-1 text-sm text-red-600">{errors.description}</div>}
           </label>
           <div className="flex gap-3 justify-end pt-2">
             <button 
@@ -87,8 +114,12 @@ function TransactionModal({
               Abbrechen
             </button>
             <button
-              className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium"
-              onClick={() => onSubmit({ date, type, hours, description })}
+              className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium"
+              disabled={!validate({ date, hours, description })}
+              onClick={() => {
+                if (!validate({ date, hours, description })) return;
+                onSubmit({ date, type, hours, description });
+              }}
             >
               Speichern
             </button>
