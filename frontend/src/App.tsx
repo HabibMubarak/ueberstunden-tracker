@@ -274,14 +274,14 @@ function History({
                 <button 
                   className="hover:underline flex items-center gap-1 ml-auto" 
                   onClick={() => {
-                    if (sortKey === 'hours') {
+                    if (sortKey === 'minutes') {
                       onToggleSortDir();
                     } else {
-                      onChangeSortKey('hours');
+                      onChangeSortKey('minutes');
                     }
                   }}
                 >
-                  Stunden {sortKey === 'hours' && (sortDir === 'asc' ? '▲' : '▼')}
+                  Stunden {sortKey === 'minutes' && (sortDir === 'asc' ? '▲' : '▼')}
                 </button>
               </th>
               <th className="p-2 text-right">Laufender Saldo</th>
