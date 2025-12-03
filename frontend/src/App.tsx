@@ -325,38 +325,59 @@ function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[
 
   return (
     <div className="mt-6">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-semibold">Kalender</h3>
-        <div className="flex items-center gap-2">
-          <button className="px-3 py-2 border rounded" onClick={prevMonth}>◀</button>
-          <div className="font-medium">{monthLabel}</div>
-          <button className="px-3 py-2 border rounded" onClick={nextMonth}>▶</button>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-bold text-gray-800">📅 Kalenderansicht</h3>
+        <div className="flex items-center gap-3 bg-white rounded-lg shadow px-4 py-2">
+          <button 
+            className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-700 font-medium"
+            onClick={prevMonth}
+          >
+            ◀
+          </button>
+          <div className="font-semibold text-gray-800 min-w-[180px] text-center">{monthLabel}</div>
+          <button 
+            className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-700 font-medium"
+            onClick={nextMonth}
+          >
+            ▶
+          </button>
         </div>
       </div>
-      <div className="rounded-xl bg-white dark:bg-gray-800 shadow p-3">
-        <div className="grid grid-cols-7 text-center text-xs font-semibold text-gray-500 mb-2">
+      <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg p-6">
+        <div className="grid grid-cols-7 gap-2 mb-3">
           {weekDays.map((w) => (
-            <div key={w}>{w}</div>
+            <div key={w} className="text-center text-sm font-bold text-indigo-700 py-2">
+              {w}
+            </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-3">
           {days.map((d, idx) => {
             const isToday = (() => {
               if (!d) return false;
               const base = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), d);
               return base.toDateString() === today.toDateString();
             })();
+            const hasData = d && typeof totalsByDay.get(d) === 'number' && totalsByDay.get(d)! !== 0;
+            const total = d ? totalsByDay.get(d) || 0 : 0;
+            
             return (
               <div
                 key={idx}
-                className={`min-h-[72px] border rounded-lg p-2 flex flex-col ${isToday ? 'border-blue-500' : ''}`}
+                className={`min-h-[90px] rounded-xl p-3 flex flex-col transition-all ${
+                  d 
+                    ? `bg-white shadow-sm hover:shadow-md ${isToday ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`
+                    : 'bg-transparent'
+                }`}
               >
                 {d ? (
                   <>
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-gray-500">{d}</div>
+                    <div className="flex items-start justify-between mb-2">
+                      <div className={`text-sm font-bold ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>
+                        {d}
+                      </div>
                       <button
-                        className="text-xs px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white"
+                        className="text-xs px-2 py-1 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium shadow-sm transition-all"
                         onClick={() => {
                           const iso = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), d)
                             .toISOString()
@@ -367,12 +388,16 @@ function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[
                         +
                       </button>
                     </div>
-                    {typeof totalsByDay.get(d) === 'number' && totalsByDay.get(d)! !== 0 ? (
-                      <div className={`mt-1 text-sm font-medium ${totalsByDay.get(d)! >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {totalsByDay.get(d)!.toFixed(2)} Std
+                    {hasData ? (
+                      <div className={`mt-auto text-center py-1 px-2 rounded-lg font-bold text-sm ${
+                        total >= 0 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                        {total > 0 ? '+' : ''}{total.toFixed(1)} h
                       </div>
                     ) : (
-                      <div className="mt-2 text-xs text-gray-400">—</div>
+                      <div className="mt-auto text-center text-xs text-gray-300">—</div>
                     )}
                   </>
                 ) : null}
@@ -415,13 +440,13 @@ export default function App() {
     });
   }, []);
 
-  // Auto-refresh every 30 seconds when authenticated
+  // Auto-refresh every 5 seconds when authenticated
   useEffect(() => {
     if (!authenticated) return;
     
     const interval = setInterval(() => {
       refresh();
-    }, 30000); // 30 seconds
+    }, 5000); // 5 seconds
 
     return () => clearInterval(interval);
   }, [authenticated]);
