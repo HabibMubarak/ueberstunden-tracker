@@ -2,11 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { createTransaction, getBalance, listTransactions, deleteTransaction, updateTransaction, Transaction, login, logout, checkAuthStatus } from './api';
 import LoginScreen from './LoginScreen';
 
-function BalanceBadge({ balance }: { balance: number }) {
+function BalanceBadge({ balance, darkMode }: { balance: number; darkMode: boolean }) {
   const color = balance >= 0 ? 'text-green-500' : 'text-red-500';
   return (
-    <div className="rounded-xl bg-gray-800 shadow-lg p-5">
-      <div className="text-sm text-gray-400">Aktueller Saldo</div>
+    <div className={`rounded-xl shadow-lg p-5 ${darkMode ? 'bg-gray-800' : 'bg-white border border-gray-200'}`}>
+      <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Aktueller Saldo</div>
       <div className={`mt-1 text-4xl font-extrabold ${color}`}>{balance.toFixed(2)} Std</div>
     </div>
   );
@@ -286,7 +286,7 @@ function History({
   );
 }
 
-function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[]; onQuickAdd: (isoDate: string) => void }) {
+function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Transaction[]; onQuickAdd: (isoDate: string) => void; darkMode: boolean }) {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
 
@@ -326,27 +326,27 @@ function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-200">📅 Kalenderansicht</h3>
+        <h3 className={`text-lg font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>📅 Kalenderansicht</h3>
         <div className="flex items-center gap-2">
           <button 
-            className="px-3 py-1 hover:bg-gray-700 rounded text-gray-300 transition"
+            className={`px-3 py-1 rounded transition ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200 text-gray-700'}`}
             onClick={prevMonth}
           >
             ◀
           </button>
-          <div className="font-medium text-gray-200 min-w-[160px] text-center">{monthLabel}</div>
+          <div className={`font-medium min-w-[160px] text-center ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{monthLabel}</div>
           <button 
-            className="px-3 py-1 hover:bg-gray-700 rounded text-gray-300 transition"
+            className={`px-3 py-1 rounded transition ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200 text-gray-700'}`}
             onClick={nextMonth}
           >
             ▶
           </button>
         </div>
       </div>
-      <div className="rounded-xl bg-gray-800 shadow-lg border border-gray-700 p-4">
+      <div className={`rounded-xl shadow-lg p-4 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
         <div className="grid grid-cols-7 gap-1 mb-2">
           {weekDays.map((w) => (
-            <div key={w} className="text-center text-xs font-semibold text-gray-400 py-2">
+            <div key={w} className={`text-center text-xs font-semibold py-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               {w}
             </div>
           ))}
@@ -366,14 +366,20 @@ function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[
                 key={idx}
                 className={`min-h-[70px] rounded-lg p-2 flex flex-col transition-all ${
                   d 
-                    ? `${isToday ? 'bg-blue-900/50 border-2 border-blue-500' : 'bg-gray-700 hover:bg-gray-600 border border-gray-600'}`
+                    ? darkMode
+                      ? `${isToday ? 'bg-blue-900/50 border-2 border-blue-500' : 'bg-gray-700 hover:bg-gray-600 border border-gray-600'}`
+                      : `${isToday ? 'bg-blue-50 border-2 border-blue-500' : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'}`
                     : 'bg-transparent'
                 }`}
               >
                 {d ? (
                   <>
                     <div className="flex items-start justify-between mb-1">
-                      <div className={`text-xs font-semibold ${isToday ? 'text-blue-400' : 'text-gray-200'}`}>
+                      <div className={`text-xs font-semibold ${
+                        isToday 
+                          ? darkMode ? 'text-blue-400' : 'text-blue-600'
+                          : darkMode ? 'text-gray-200' : 'text-gray-700'
+                      }`}>
                         {d}
                       </div>
                       <button
@@ -391,13 +397,13 @@ function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[
                     {hasData ? (
                       <div className={`mt-auto text-center py-0.5 px-1 rounded text-[11px] font-semibold ${
                         total >= 0 
-                          ? 'bg-green-900/60 text-green-400' 
-                          : 'bg-red-900/60 text-red-400'
+                          ? darkMode ? 'bg-green-900/60 text-green-400' : 'bg-green-100 text-green-700'
+                          : darkMode ? 'bg-red-900/60 text-red-400' : 'bg-red-100 text-red-700'
                       }`}>
                         {total > 0 ? '+' : ''}{total.toFixed(1)}h
                       </div>
                     ) : (
-                      <div className="mt-auto text-center text-[10px] text-gray-500">—</div>
+                      <div className={`mt-auto text-center text-[10px] ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>—</div>
                     )}
                   </>
                 ) : null}
@@ -415,6 +421,10 @@ export default function App() {
     const [authLoading, setAuthLoading] = useState(true);
     const [loginError, setLoginError] = useState('');
     const [loginLoading, setLoginLoading] = useState(false);
+    const [darkMode, setDarkMode] = useState(() => {
+      const saved = localStorage.getItem('theme');
+      return saved ? saved === 'dark' : true; // default dark
+    });
 
   const [balance, setBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -423,6 +433,14 @@ export default function App() {
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
+  useEffect(() => {
+    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
+  function toggleTheme() {
+    setDarkMode(!darkMode);
+  }
 
   async function refresh() {
     const [b, list] = await Promise.all([getBalance(), listTransactions()]);
@@ -500,17 +518,32 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="max-w-4xl mx-auto p-4 space-y-4">
-        <div className="flex justify-end mb-2">
+        <div className="flex justify-between items-center mb-2">
+          <button
+            onClick={toggleTheme}
+            className={`px-4 py-2 rounded-lg transition ${
+              darkMode 
+                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+            }`}
+            title="Theme wechseln"
+          >
+            {darkMode ? '☀️ Light' : '🌙 Dark'}
+          </button>
           <button
             onClick={handleLogout}
-            className="px-4 py-2 text-sm text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg transition"
+            className={`px-4 py-2 text-sm rounded-lg transition ${
+              darkMode
+                ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
           >
             🚪 Abmelden
           </button>
         </div>
-      <BalanceBadge balance={balance} />
+      <BalanceBadge balance={balance} darkMode={darkMode} />
       <ActionButtons onAdd={() => setModalType('EARNED')} onSpend={() => setModalType('SPENT')} />
       {modalType && (
         <TransactionModal
@@ -546,6 +579,7 @@ export default function App() {
           setSelectedDate(iso);
           setModalType('EARNED');
         }}
+        darkMode={darkMode}
       />
       </div>
     </div>
