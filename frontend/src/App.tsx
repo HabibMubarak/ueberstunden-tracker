@@ -416,6 +416,17 @@ export default function App() {
     });
   }, []);
 
+  // Auto-refresh every 30 seconds when authenticated
+  useEffect(() => {
+    if (!authenticated) return;
+    
+    const interval = setInterval(() => {
+      refresh();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [authenticated]);
+
   async function handleLogin(password: string) {
     setLoginLoading(true);
     setLoginError('');
