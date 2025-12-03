@@ -13,11 +13,16 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Password required' });
     }
 
-    const isValid = await bcrypt.compare(password, await bcrypt.hash(correctPassword, 10));
-    
     if (password === correctPassword) {
       // @ts-ignore - express-session types
       req.session.authenticated = true;
+      // Force save session before responding
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
       return res.json({ success: true });
     }
 

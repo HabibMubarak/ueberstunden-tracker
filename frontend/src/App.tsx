@@ -376,53 +376,47 @@ export default function App() {
   }
 
   useEffect(() => {
-      checkAuthStatus().then((auth) => {
-        setAuthenticated(auth);
-        setAuthLoading(false);
-        if (auth) {
-          refresh();
-        }
-      });
-    }, []);
-
-    async function handleLogin(password: string) {
-      setLoginLoading(true);
-      setLoginError('');
-      try {
-        await login(password);
-        setAuthenticated(true);
-        await refresh();
-      } catch (err: any) {
-        setLoginError(err.response?.data?.error || 'Falsches Passwort');
-      } finally {
-        setLoginLoading(false);
+    checkAuthStatus().then((auth) => {
+      setAuthenticated(auth);
+      setAuthLoading(false);
+      if (auth) {
+        refresh();
       }
-    }
-
-    async function handleLogout() {
-      await logout();
-      setAuthenticated(false);
-      setTransactions([]);
-      setBalance(0);
-    }
-
-    if (authLoading) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-gray-600">Laden...</div>
-        </div>
-      );
-    }
-
-    if (!authenticated) {
-      return <LoginScreen onLogin={handleLogin} error={loginError} loading={loginLoading} />;
-    }
-
-    useEffect(() => {
-    refresh();
+    });
   }, []);
 
-  async function handleSubmit(tx: Omit<Transaction, '_id'>) {
+  async function handleLogin(password: string) {
+    setLoginLoading(true);
+    setLoginError('');
+    try {
+      await login(password);
+      setAuthenticated(true);
+      await refresh();
+    } catch (err: any) {
+      setLoginError(err.response?.data?.error || 'Falsches Passwort');
+    } finally {
+      setLoginLoading(false);
+    }
+  }
+
+  async function handleLogout() {
+    await logout();
+    setAuthenticated(false);
+    setTransactions([]);
+    setBalance(0);
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-gray-600">Laden...</div>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return <LoginScreen onLogin={handleLogin} error={loginError} loading={loginLoading} />;
+  }  async function handleSubmit(tx: Omit<Transaction, '_id'>) {
     if (editingTx && editingTx._id) {
       await updateTransaction(editingTx._id, tx);
       setEditingTx(null);
