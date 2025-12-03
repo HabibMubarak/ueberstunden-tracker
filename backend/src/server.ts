@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import transactionsRouter from './routes/transactions';
+import transactionsRouter from './routes/transactions.js';
 
 dotenv.config();
 
