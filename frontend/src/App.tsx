@@ -326,32 +326,32 @@ function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-bold text-gray-800">📅 Kalenderansicht</h3>
-        <div className="flex items-center gap-3 bg-white rounded-lg shadow px-4 py-2">
+        <h3 className="text-lg font-semibold text-gray-800">📅 Kalenderansicht</h3>
+        <div className="flex items-center gap-2">
           <button 
-            className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-700 font-medium"
+            className="px-3 py-1 hover:bg-gray-200 rounded text-gray-700 transition"
             onClick={prevMonth}
           >
             ◀
           </button>
-          <div className="font-semibold text-gray-800 min-w-[180px] text-center">{monthLabel}</div>
+          <div className="font-medium text-gray-800 min-w-[160px] text-center">{monthLabel}</div>
           <button 
-            className="p-2 hover:bg-gray-100 rounded-lg transition text-gray-700 font-medium"
+            className="px-3 py-1 hover:bg-gray-200 rounded text-gray-700 transition"
             onClick={nextMonth}
           >
             ▶
           </button>
         </div>
       </div>
-      <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg p-6">
-        <div className="grid grid-cols-7 gap-2 mb-3">
+      <div className="rounded-xl bg-white shadow-md border border-gray-200 p-4">
+        <div className="grid grid-cols-7 gap-1 mb-2">
           {weekDays.map((w) => (
-            <div key={w} className="text-center text-sm font-bold text-indigo-700 py-2">
+            <div key={w} className="text-center text-xs font-semibold text-gray-600 py-2">
               {w}
             </div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-3">
+        <div className="grid grid-cols-7 gap-1">
           {days.map((d, idx) => {
             const isToday = (() => {
               if (!d) return false;
@@ -364,20 +364,20 @@ function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[
             return (
               <div
                 key={idx}
-                className={`min-h-[90px] rounded-xl p-3 flex flex-col transition-all ${
+                className={`min-h-[70px] rounded-lg p-2 flex flex-col transition-all ${
                   d 
-                    ? `bg-white shadow-sm hover:shadow-md ${isToday ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`
+                    ? `${isToday ? 'bg-blue-50 border-2 border-blue-500' : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'}`
                     : 'bg-transparent'
                 }`}
               >
                 {d ? (
                   <>
-                    <div className="flex items-start justify-between mb-2">
-                      <div className={`text-sm font-bold ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>
+                    <div className="flex items-start justify-between mb-1">
+                      <div className={`text-xs font-semibold ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>
                         {d}
                       </div>
                       <button
-                        className="text-xs px-2 py-1 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium shadow-sm transition-all"
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
                         onClick={() => {
                           const iso = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), d)
                             .toISOString()
@@ -389,15 +389,15 @@ function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[
                       </button>
                     </div>
                     {hasData ? (
-                      <div className={`mt-auto text-center py-1 px-2 rounded-lg font-bold text-sm ${
+                      <div className={`mt-auto text-center py-0.5 px-1 rounded text-[11px] font-semibold ${
                         total >= 0 
                           ? 'bg-green-100 text-green-700' 
                           : 'bg-red-100 text-red-700'
                       }`}>
-                        {total > 0 ? '+' : ''}{total.toFixed(1)} h
+                        {total > 0 ? '+' : ''}{total.toFixed(1)}h
                       </div>
                     ) : (
-                      <div className="mt-auto text-center text-xs text-gray-300">—</div>
+                      <div className="mt-auto text-center text-[10px] text-gray-300">—</div>
                     )}
                   </>
                 ) : null}
