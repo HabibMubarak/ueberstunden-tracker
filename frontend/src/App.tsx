@@ -45,7 +45,7 @@ function TransactionModal({
   const [description, setDescription] = useState<string>(initialDescription ?? '');
   const [errors, setErrors] = useState<{ date?: string; hours?: string; description?: string }>({});
 
-  function validate(current: { date: string; hours: number; description: string }) {
+  function computeErrors(current: { date: string; hours: number; description: string }) {
     const e: { date?: string; hours?: string; description?: string } = {};
     if (!/^\d{4}-\d{2}-\d{2}$/.test(current.date)) {
       e.date = 'Datum muss im Format YYYY-MM-DD sein';
@@ -56,12 +56,11 @@ function TransactionModal({
     if (!current.description || current.description.trim().length === 0) {
       e.description = 'Beschreibung darf nicht leer sein';
     }
-    setErrors(e);
-    return Object.keys(e).length === 0;
+    return e;
   }
 
   useEffect(() => {
-    validate({ date, hours, description });
+    setErrors(computeErrors({ date, hours, description }));
   }, [date, hours, description]);
 
   return (
@@ -115,9 +114,10 @@ function TransactionModal({
             </button>
             <button
               className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium"
-              disabled={!validate({ date, hours, description })}
+              disabled={Object.keys(computeErrors({ date, hours, description })).length > 0}
               onClick={() => {
-                if (!validate({ date, hours, description })) return;
+                const e = computeErrors({ date, hours, description });
+                if (Object.keys(e).length > 0) return;
                 onSubmit({ date, type, hours, description });
               }}
             >
