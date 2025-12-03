@@ -10,7 +10,19 @@ router.post('/', async (req, res) => {
     if (!date || !type || hours == null || !description) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
-    const tx = await TransactionModel.create({ date, type, hours, description });
+
+    // Basic validation/sanitization
+    const parsedHours = typeof hours === 'string' ? Number(hours) : hours;
+    if (!Number.isFinite(parsedHours) || parsedHours <= 0) {
+      return res.status(400).json({ message: 'Hours must be a positive number' });
+    }
+
+    const normalizedDate = String(date).slice(0, 10); // YYYY-MM-DD
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
+      return res.status(400).json({ message: 'Date must be YYYY-MM-DD' });
+    }
+
+    const tx = await TransactionModel.create({ date: normalizedDate, type, hours: parsedHours, description });
     res.status(201).json(tx);
   } catch (err) {
     res.status(500).json({ message: 'Failed to create transaction', error: String(err) });
