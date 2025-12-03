@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { createTransaction, getBalance, listTransactions, deleteTransaction, updateTransaction, Transaction } from './api';
+import { createTransaction, getBalance, listTransactions, deleteTransaction, updateTransaction, Transaction, login, logout, checkAuthStatus } from './api';
+import LoginScreen from './LoginScreen';
 
 function BalanceBadge({ balance }: { balance: number }) {
   const color = balance >= 0 ? 'text-green-600' : 'text-red-600';
@@ -354,6 +355,11 @@ function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[
 }
 
 export default function App() {
+    const [authenticated, setAuthenticated] = useState(false);
+    const [authLoading, setAuthLoading] = useState(true);
+    const [loginError, setLoginError] = useState('');
+    const [loginLoading, setLoginLoading] = useState(false);
+
   const [balance, setBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [modalType, setModalType] = useState<null | 'EARNED' | 'SPENT'>(null);
@@ -363,12 +369,56 @@ export default function App() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   async function refresh() {
+      if (!authenticated) return;
     const [b, list] = await Promise.all([getBalance(), listTransactions()]);
     setBalance(b);
     setTransactions(list);
   }
 
   useEffect(() => {
+      checkAuthStatus().then((auth) => {
+        setAuthenticated(auth);
+        setAuthLoading(false);
+        if (auth) {
+          refresh();
+        }
+      });
+    }, []);
+
+    async function handleLogin(password: string) {
+      setLoginLoading(true);
+      setLoginError('');
+      try {
+        await login(password);
+        setAuthenticated(true);
+        await refresh();
+      } catch (err: any) {
+        setLoginError(err.response?.data?.error || 'Falsches Passwort');
+      } finally {
+        setLoginLoading(false);
+      }
+    }
+
+    async function handleLogout() {
+      await logout();
+      setAuthenticated(false);
+      setTransactions([]);
+      setBalance(0);
+    }
+
+    if (authLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-gray-600">Laden...</div>
+        </div>
+      );
+    }
+
+    if (!authenticated) {
+      return <LoginScreen onLogin={handleLogin} error={loginError} loading={loginLoading} />;
+    }
+
+    useEffect(() => {
     refresh();
   }, []);
 
@@ -391,6 +441,14 @@ export default function App() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-4">
+        <div className="flex justify-end mb-2">
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+          >
+            🚪 Abmelden
+          </button>
+        </div>
       <BalanceBadge balance={balance} />
       <ActionButtons onAdd={() => setModalType('EARNED')} onSpend={() => setModalType('SPENT')} />
       {modalType && (

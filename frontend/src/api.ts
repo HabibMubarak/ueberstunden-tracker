@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
+// Enable credentials for session cookies
+axios.defaults.withCredentials = true;
+
 export interface Transaction {
   _id?: string;
   date: string;
@@ -33,3 +36,22 @@ export async function updateTransaction(id: string, tx: Partial<Transaction>) {
   const res = await axios.put(`${baseURL}/transactions/${id}`, tx);
   return res.data as Transaction;
 }
+
+  // Auth functions
+  export async function login(password: string) {
+    const res = await axios.post(`${baseURL}/auth/login`, { password });
+    return res.data;
+  }
+
+  export async function logout() {
+    await axios.post(`${baseURL}/auth/logout`);
+  }
+
+  export async function checkAuthStatus() {
+    try {
+      const res = await axios.get(`${baseURL}/auth/status`);
+      return res.data.authenticated as boolean;
+    } catch {
+      return false;
+    }
+  }
