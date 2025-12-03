@@ -2,12 +2,20 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { createTransaction, getBalance, listTransactions, deleteTransaction, updateTransaction, Transaction, login, logout, checkAuthStatus } from './api';
 import LoginScreen from './LoginScreen';
 
-function BalanceBadge({ balance, darkMode }: { balance: number; darkMode: boolean }) {
-  const color = balance >= 0 ? 'text-green-500' : 'text-red-500';
+function formatHMM(totalMinutes: number) {
+  const sign = totalMinutes < 0 ? '-' : '';
+  const abs = Math.abs(totalMinutes);
+  const h = Math.floor(abs / 60);
+  const m = abs % 60;
+  return `${sign}${h}:${String(m).padStart(2, '0')}`;
+}
+
+function BalanceBadge({ balanceMinutes, darkMode }: { balanceMinutes: number; darkMode: boolean }) {
+  const color = balanceMinutes >= 0 ? 'text-green-500' : 'text-red-500';
   return (
     <div className={`rounded-xl shadow-lg p-5 ${darkMode ? 'bg-gray-800' : 'bg-white border border-gray-200'}`}>
       <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Aktueller Saldo</div>
-      <div className={`mt-1 text-4xl font-extrabold ${color}`}>{balance.toFixed(2)} Std</div>
+      <div className={`mt-1 text-4xl font-extrabold ${color}`}>{formatHMM(balanceMinutes)} Std</div>
     </div>
   );
 }
@@ -30,28 +38,35 @@ function TransactionModal({
   onClose,
   onSubmit,
   initialDate,
-  initialHours,
+  initialMinutes,
   initialDescription,
 }: {
   type: 'EARNED' | 'SPENT';
   onClose: () => void;
   onSubmit: (tx: Omit<Transaction, '_id'>) => void;
   initialDate?: string;
-  initialHours?: number;
+  initialMinutes?: number;
   initialDescription?: string;
 }) {
   const [date, setDate] = useState<string>(initialDate ?? new Date().toISOString().slice(0, 10));
-  const [hours, setHours] = useState<number>(initialHours ?? 1);
+  const [hoursInput, setHoursInput] = useState<number>(initialMinutes != null ? Math.floor(initialMinutes / 60) : 0);
+  const [minutesInput, setMinutesInput] = useState<number>(initialMinutes != null ? (initialMinutes % 60) : 0);
   const [description, setDescription] = useState<string>(initialDescription ?? '');
-  const [errors, setErrors] = useState<{ date?: string; hours?: string; description?: string }>({});
+  const [errors, setErrors] = useState<{ date?: string; hours?: string; minutes?: string; description?: string }>({});
 
-  function computeErrors(current: { date: string; hours: number; description: string }) {
-    const e: { date?: string; hours?: string; description?: string } = {};
+  function computeErrors(current: { date: string; hours: number; minutes: number; description: string }) {
+    const e: { date?: string; hours?: string; minutes?: string; description?: string } = {};
     if (!/^\d{4}-\d{2}-\d{2}$/.test(current.date)) {
       e.date = 'Datum muss im Format YYYY-MM-DD sein';
     }
-    if (!Number.isFinite(current.hours) || current.hours <= 0) {
-      e.hours = 'Stunden müssen eine positive Zahl sein';
+    if (!Number.isInteger(current.hours) || current.hours < 0) {
+      e.hours = 'Stunden müssen eine ganze Zahl ≥ 0 sein';
+    }
+    if (!Number.isInteger(current.minutes) || current.minutes < 0 || current.minutes > 59) {
+      e.minutes = 'Minuten müssen zwischen 0 und 59 liegen';
+    }
+    if ((current.hours + current.minutes) <= 0) {
+      e.minutes = 'Gesamtzeit muss > 0 sein';
     }
     if (!current.description || current.description.trim().length === 0) {
       e.description = 'Beschreibung darf nicht leer sein';
@@ -60,8 +75,8 @@ function TransactionModal({
   }
 
   useEffect(() => {
-    setErrors(computeErrors({ date, hours, description }));
-  }, [date, hours, description]);
+    setErrors(computeErrors({ date, hours: hoursInput, minutes: minutesInput, description }));
+  }, [date, hoursInput, minutesInput, description]);
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={onClose}>
@@ -80,21 +95,43 @@ function TransactionModal({
             />
             {errors.date && <div className="mt-1 text-sm text-red-600">{errors.date}</div>}
           </label>
-          <label className="block">
-            <span className="text-sm font-medium text-gray-900">Stunden (Dezimal)</span>
-            <input
-              type="number"
-              step="0.25"
-              className="w-full mt-1 p-2 border border-gray-300 rounded bg-white text-gray-900"
-              value={hours}
-              onChange={(e) => {
-                const v = e.target.value;
-                const num = v === '' ? NaN : parseFloat(v);
-                setHours(num);
-              }}
-            />
-            {errors.hours && <div className="mt-1 text-sm text-red-600">{errors.hours}</div>}
-          </label>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="block">
+              <span className="text-sm font-medium text-gray-900">Stunden</span>
+              <input
+                type="number"
+                step="1"
+                min={0}
+                className="w-full mt-1 p-2 border border-gray-300 rounded bg-white text-gray-900"
+                value={hoursInput}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const num = v === '' ? 0 : Math.max(0, Math.floor(Number(v)) || 0);
+                  setHoursInput(num);
+                }}
+              />
+              {errors.hours && <div className="mt-1 text-sm text-red-600">{errors.hours}</div>}
+            </label>
+            <label className="block">
+              <span className="text-sm font-medium text-gray-900">Minuten</span>
+              <input
+                type="number"
+                step="1"
+                min={0}
+                max={59}
+                className="w-full mt-1 p-2 border border-gray-300 rounded bg-white text-gray-900"
+                value={minutesInput}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  let num = v === '' ? 0 : Math.floor(Number(v)) || 0;
+                  if (num < 0) num = 0;
+                  if (num > 59) num = 59;
+                  setMinutesInput(num);
+                }}
+              />
+              {errors.minutes && <div className="mt-1 text-sm text-red-600">{errors.minutes}</div>}
+            </label>
+          </div>
           <label className="block">
             <span className="text-sm font-medium text-gray-900">Beschreibung</span>
             <input
@@ -114,11 +151,12 @@ function TransactionModal({
             </button>
             <button
               className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium"
-              disabled={Object.keys(computeErrors({ date, hours, description })).length > 0}
+              disabled={Object.keys(computeErrors({ date, hours: hoursInput, minutes: minutesInput, description })).length > 0}
               onClick={() => {
-                const e = computeErrors({ date, hours, description });
+                const e = computeErrors({ date, hours: hoursInput, minutes: minutesInput, description });
                 if (Object.keys(e).length > 0) return;
-                onSubmit({ date, type, hours, description });
+                const totalMinutes = hoursInput * 60 + minutesInput;
+                onSubmit({ date, type, minutes: totalMinutes, description } as any);
               }}
             >
               Speichern
@@ -130,7 +168,7 @@ function TransactionModal({
   );
 }
 
-type SortKey = 'date' | 'description' | 'hours';
+type SortKey = 'date' | 'description' | 'minutes';
 
 function History({
   transactions,
@@ -158,7 +196,7 @@ function History({
       } else if (sortKey === 'description') {
         cmp = a.description.localeCompare(b.description);
       } else {
-        cmp = a.hours - b.hours;
+        cmp = a.minutes - b.minutes;
       }
       return sortDir === 'asc' ? cmp : -cmp;
     });
@@ -174,7 +212,7 @@ function History({
     const runningMap = new Map<string, number>();
     let running = 0;
     chronological.forEach((t) => {
-      running += t.type === 'EARNED' ? t.hours : -t.hours;
+      running += t.type === 'EARNED' ? t.minutes : -t.minutes;
       runningMap.set(t._id || `${t.date}-${t.description}`, running);
     });
 
@@ -252,11 +290,11 @@ function History({
           </thead>
           <tbody>
             {rows.map((t) => (
-              <tr key={t._id || `${t.date}-${t.description}-${t.hours}`} className="border-b odd:bg-gray-50 dark:odd:bg-gray-900">
+              <tr key={t._id || `${t.date}-${t.description}-${t.minutes}`} className="border-b odd:bg-gray-50 dark:odd:bg-gray-900">
                 <td className="p-2">{t.date}</td>
                 <td className="p-2">{t.description}</td>
-                <td className="p-2 text-right font-mono">{t.type === 'EARNED' ? '+' : '-'}{t.hours.toFixed(2)}</td>
-                <td className="p-2 text-right font-mono">{t.running.toFixed(2)}</td>
+                <td className="p-2 text-right font-mono">{t.type === 'EARNED' ? '+' : '-'}{formatHMM(t.minutes)}</td>
+                <td className="p-2 text-right font-mono">{formatHMM((rows.find(r => r._id === t._id)?.running) || 0)}</td>
                 <td className="p-2 text-right space-x-2">
                   {t._id ? (
                     <>
@@ -290,6 +328,13 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
 
+  function localISO(y: number, mZeroBased: number, d: number) {
+    const yyyy = String(y);
+    const mm = String(mZeroBased + 1).padStart(2, '0');
+    const dd = String(d).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
   const { days, monthLabel, totalsByDay } = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
@@ -300,7 +345,7 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
     transactions.forEach((t) => {
       const d = new Date(t.date);
       if (d.getFullYear() === year && d.getMonth() === month) {
-        const delta = t.type === 'EARNED' ? t.hours : -t.hours;
+        const delta = t.type === 'EARNED' ? t.minutes : -t.minutes;
         totals.set(d.getDate(), (totals.get(d.getDate()) || 0) + delta);
       }
     });
@@ -385,10 +430,8 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
                       <button
                         className="text-[10px] px-1.5 py-0.5 rounded bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
                         onClick={() => {
-                          const iso = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), d)
-                            .toISOString()
-                            .slice(0, 10);
-                          onQuickAdd(iso);
+                          const isoLocal = localISO(currentMonth.getFullYear(), currentMonth.getMonth(), d);
+                          onQuickAdd(isoLocal);
                         }}
                       >
                         +
@@ -400,7 +443,7 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
                           ? darkMode ? 'bg-green-900/60 text-green-400' : 'bg-green-100 text-green-700'
                           : darkMode ? 'bg-red-900/60 text-red-400' : 'bg-red-100 text-red-700'
                       }`}>
-                        {total > 0 ? '+' : ''}{total.toFixed(1)}h
+                        {total > 0 ? '+' : ''}{formatHMM(total)}h
                       </div>
                     ) : (
                       <div className={`mt-auto text-center text-[10px] ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>—</div>
@@ -426,7 +469,7 @@ export default function App() {
       return saved ? saved === 'dark' : true; // default dark
     });
 
-  const [balance, setBalance] = useState<number>(0);
+  const [balanceMinutes, setBalanceMinutes] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [modalType, setModalType] = useState<null | 'EARNED' | 'SPENT'>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -444,7 +487,7 @@ export default function App() {
 
   async function refresh() {
     const [b, list] = await Promise.all([getBalance(), listTransactions()]);
-    setBalance(b);
+    setBalanceMinutes(b);
     setTransactions(list);
   }
 
@@ -487,7 +530,7 @@ export default function App() {
     await logout();
     setAuthenticated(false);
     setTransactions([]);
-    setBalance(0);
+    setBalanceMinutes(0);
   }
 
   if (authLoading) {
@@ -543,13 +586,13 @@ export default function App() {
             🚪 Abmelden
           </button>
         </div>
-      <BalanceBadge balance={balance} darkMode={darkMode} />
+      <BalanceBadge balanceMinutes={balanceMinutes} darkMode={darkMode} />
       <ActionButtons onAdd={() => setModalType('EARNED')} onSpend={() => setModalType('SPENT')} />
       {modalType && (
         <TransactionModal
           type={modalType}
           initialDate={selectedDate ?? (editingTx?.date ?? undefined)}
-          initialHours={editingTx?.hours}
+          initialMinutes={editingTx?.minutes}
           initialDescription={editingTx?.description}
           onClose={() => {
             setModalType(null);

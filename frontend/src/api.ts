@@ -9,13 +9,13 @@ export interface Transaction {
   _id?: string;
   date: string;
   type: 'EARNED' | 'SPENT';
-  hours: number;
+  minutes: number;
   description: string;
 }
 
 export async function getBalance() {
   const res = await axios.get(`${baseURL}/transactions/balance`);
-  return res.data.balance as number;
+  return res.data.balanceMinutes as number;
 }
 
 export async function listTransactions() {
