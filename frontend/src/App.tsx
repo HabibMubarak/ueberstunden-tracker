@@ -400,7 +400,6 @@ export default function App() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   async function refresh() {
-      if (!authenticated) return;
     const [b, list] = await Promise.all([getBalance(), listTransactions()]);
     setBalance(b);
     setTransactions(list);
