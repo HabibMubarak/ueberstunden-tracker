@@ -3,10 +3,10 @@ import { createTransaction, getBalance, listTransactions, deleteTransaction, upd
 import LoginScreen from './LoginScreen';
 
 function BalanceBadge({ balance }: { balance: number }) {
-  const color = balance >= 0 ? 'text-green-600' : 'text-red-600';
+  const color = balance >= 0 ? 'text-green-500' : 'text-red-500';
   return (
-    <div className="rounded-xl bg-white dark:bg-gray-800 shadow p-5">
-      <div className="text-sm text-gray-500 dark:text-gray-400">Aktueller Saldo</div>
+    <div className="rounded-xl bg-gray-800 shadow-lg p-5">
+      <div className="text-sm text-gray-400">Aktueller Saldo</div>
       <div className={`mt-1 text-4xl font-extrabold ${color}`}>{balance.toFixed(2)} Std</div>
     </div>
   );
@@ -326,27 +326,27 @@ function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">📅 Kalenderansicht</h3>
+        <h3 className="text-lg font-semibold text-gray-200">📅 Kalenderansicht</h3>
         <div className="flex items-center gap-2">
           <button 
-            className="px-3 py-1 hover:bg-gray-200 rounded text-gray-700 transition"
+            className="px-3 py-1 hover:bg-gray-700 rounded text-gray-300 transition"
             onClick={prevMonth}
           >
             ◀
           </button>
-          <div className="font-medium text-gray-800 min-w-[160px] text-center">{monthLabel}</div>
+          <div className="font-medium text-gray-200 min-w-[160px] text-center">{monthLabel}</div>
           <button 
-            className="px-3 py-1 hover:bg-gray-200 rounded text-gray-700 transition"
+            className="px-3 py-1 hover:bg-gray-700 rounded text-gray-300 transition"
             onClick={nextMonth}
           >
             ▶
           </button>
         </div>
       </div>
-      <div className="rounded-xl bg-white shadow-md border border-gray-200 p-4">
+      <div className="rounded-xl bg-gray-800 shadow-lg border border-gray-700 p-4">
         <div className="grid grid-cols-7 gap-1 mb-2">
           {weekDays.map((w) => (
-            <div key={w} className="text-center text-xs font-semibold text-gray-600 py-2">
+            <div key={w} className="text-center text-xs font-semibold text-gray-400 py-2">
               {w}
             </div>
           ))}
@@ -366,14 +366,14 @@ function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[
                 key={idx}
                 className={`min-h-[70px] rounded-lg p-2 flex flex-col transition-all ${
                   d 
-                    ? `${isToday ? 'bg-blue-50 border-2 border-blue-500' : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'}`
+                    ? `${isToday ? 'bg-blue-900/50 border-2 border-blue-500' : 'bg-gray-700 hover:bg-gray-600 border border-gray-600'}`
                     : 'bg-transparent'
                 }`}
               >
                 {d ? (
                   <>
                     <div className="flex items-start justify-between mb-1">
-                      <div className={`text-xs font-semibold ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>
+                      <div className={`text-xs font-semibold ${isToday ? 'text-blue-400' : 'text-gray-200'}`}>
                         {d}
                       </div>
                       <button
@@ -391,13 +391,13 @@ function CalendarView({ transactions, onQuickAdd }: { transactions: Transaction[
                     {hasData ? (
                       <div className={`mt-auto text-center py-0.5 px-1 rounded text-[11px] font-semibold ${
                         total >= 0 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-red-100 text-red-700'
+                          ? 'bg-green-900/60 text-green-400' 
+                          : 'bg-red-900/60 text-red-400'
                       }`}>
                         {total > 0 ? '+' : ''}{total.toFixed(1)}h
                       </div>
                     ) : (
-                      <div className="mt-auto text-center text-[10px] text-gray-300">—</div>
+                      <div className="mt-auto text-center text-[10px] text-gray-500">—</div>
                     )}
                   </>
                 ) : null}
@@ -500,11 +500,12 @@ export default function App() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-4">
+    <div className="min-h-screen bg-gray-900">
+      <div className="max-w-4xl mx-auto p-4 space-y-4">
         <div className="flex justify-end mb-2">
           <button
             onClick={handleLogout}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
+            className="px-4 py-2 text-sm text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg transition"
           >
             🚪 Abmelden
           </button>
@@ -546,6 +547,7 @@ export default function App() {
           setModalType('EARNED');
         }}
       />
+      </div>
     </div>
   );
 }
