@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { createTransaction, getBalance, listTransactions, deleteTransaction, updateTransaction, Transaction, login, logout, checkAuthStatus } from './api';
 import LoginScreen from './LoginScreen';
 
@@ -10,12 +11,18 @@ function formatHMM(totalMinutes: number) {
   return `${sign}${h}:${String(m).padStart(2, '0')}`;
 }
 
+function formatDateShort(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
 function BalanceBadge({ balanceMinutes, darkMode }: { balanceMinutes: number; darkMode: boolean }) {
   const color = balanceMinutes >= 0 ? 'text-green-500' : 'text-red-500';
   return (
-    <div className={`rounded-xl shadow-lg p-5 ${darkMode ? 'bg-gray-800' : 'bg-white border border-gray-200'}`}>
-      <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Aktueller Saldo</div>
-      <div className={`mt-1 text-4xl font-extrabold ${color}`}>{formatHMM(balanceMinutes)} Std</div>
+    <div className={`rounded-xl shadow-xl p-6 border-2 ${darkMode ? 'bg-gradient-to-br from-green-900/30 to-blue-900/30 border-green-700' : 'bg-gradient-to-br from-green-50 to-blue-50 border-green-200'}`}>
+      <div className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Aktueller Saldo</div>
+      <div className={`mt-2 text-4xl font-extrabold ${color}`}>{formatHMM(balanceMinutes)} Std</div>
     </div>
   );
 }
@@ -23,10 +30,10 @@ function BalanceBadge({ balanceMinutes, darkMode }: { balanceMinutes: number; da
 function ActionButtons({ onAdd, onSpend }: { onAdd: () => void; onSpend: () => void }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <button className="px-4 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium shadow" onClick={onAdd}>
+      <button className="px-4 py-4 rounded-lg bg-green-600 hover:bg-green-700 active:scale-95 text-white font-semibold shadow-lg transition-all" onClick={onAdd}>
         ➕ Stunden Hinzufügen
       </button>
-      <button className="px-4 py-3 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium shadow" onClick={onSpend}>
+      <button className="px-4 py-4 rounded-lg bg-red-600 hover:bg-red-700 active:scale-95 text-white font-semibold shadow-lg transition-all" onClick={onSpend}>
         ➖ Stunden Abziehen
       </button>
     </div>
@@ -40,6 +47,7 @@ function TransactionModal({
   initialDate,
   initialMinutes,
   initialDescription,
+  darkMode,
 }: {
   type: 'EARNED' | 'SPENT';
   onClose: () => void;
@@ -47,6 +55,7 @@ function TransactionModal({
   initialDate?: string;
   initialMinutes?: number;
   initialDescription?: string;
+  darkMode: boolean;
 }) {
   const [date, setDate] = useState<string>(initialDate ?? new Date().toISOString().slice(0, 10));
   const [hoursInput, setHoursInput] = useState<number>(initialMinutes != null ? Math.floor(initialMinutes / 60) : 0);
@@ -78,79 +87,119 @@ function TransactionModal({
     setErrors(computeErrors({ date, hours: hoursInput, minutes: minutesInput, description }));
   }, [date, hoursInput, minutesInput, description]);
 
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={onClose}>
-      <div className="bg-gray-50 rounded-xl shadow-2xl p-6 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-xl font-semibold mb-4 text-gray-900">
+  return createPortal(
+    <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/65' : 'bg-black/50'} backdrop-blur-md flex items-center justify-center z-50`} onClick={onClose}>
+      <div className={`${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'} rounded-2xl shadow-2xl ring-1 ring-black/10 p-5 sm:p-6 w-full max-w-lg sm:max-w-xl`} onClick={(e) => e.stopPropagation()}>
+        <h2 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           {type === 'EARNED' ? 'Stunden Hinzufügen' : 'Stunden Abziehen'}
         </h2>
         <div className="space-y-4">
           <label className="block">
-            <span className="text-sm font-medium text-gray-900">Datum</span>
+            <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Datum</span>
             <input
               type="date"
-              className="w-full mt-1 p-2 border border-gray-300 rounded bg-white text-gray-900"
+              className={`w-full mt-1 p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500 calendar-icon-dark' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500 calendar-icon-light'} focus:outline-none`}
               value={date}
               onChange={(e) => setDate(e.target.value)}
             />
-            {errors.date && <div className="mt-1 text-sm text-red-600">{errors.date}</div>}
+            {errors.date && <div className={`mt-1 text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`}>{errors.date}</div>}
           </label>
           <div className="grid grid-cols-2 gap-4">
             <label className="block">
-              <span className="text-sm font-medium text-gray-900">Stunden</span>
-              <input
-                type="number"
-                step="1"
-                min={0}
-                className="w-full mt-1 p-2 border border-gray-300 rounded bg-white text-gray-900"
-                value={hoursInput}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  const num = v === '' ? 0 : Math.max(0, Math.floor(Number(v)) || 0);
-                  setHoursInput(num);
-                }}
-              />
-              {errors.hours && <div className="mt-1 text-sm text-red-600">{errors.hours}</div>}
+              <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Stunden</span>
+              <div className="relative mt-1">
+                <input
+                  type="number"
+                  step="1"
+                  min={0}
+                  className={`number-no-spinner w-full p-2 pr-10 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
+                  value={hoursInput}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    const num = v === '' ? 0 : Math.max(0, Math.floor(Number(v)) || 0);
+                    setHoursInput(num);
+                  }}
+                />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col">
+                  <button
+                    type="button"
+                    className={`h-4 w-6 text-[10px] rounded-t ${darkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                    onClick={() => setHoursInput((v) => Math.max(0, v + 1))}
+                    title="+1h"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    className={`h-4 w-6 text-[10px] rounded-b ${darkMode ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-300 hover:bg-gray-400 text-gray-900'}`}
+                    onClick={() => setHoursInput((v) => Math.max(0, v - 1))}
+                    title="-1h"
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+              {errors.hours && <div className={`mt-1 text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`}>{errors.hours}</div>}
             </label>
             <label className="block">
-              <span className="text-sm font-medium text-gray-900">Minuten</span>
-              <input
-                type="number"
-                step="1"
-                min={0}
-                max={59}
-                className="w-full mt-1 p-2 border border-gray-300 rounded bg-white text-gray-900"
-                value={minutesInput}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  let num = v === '' ? 0 : Math.floor(Number(v)) || 0;
-                  if (num < 0) num = 0;
-                  if (num > 59) num = 59;
-                  setMinutesInput(num);
-                }}
-              />
-              {errors.minutes && <div className="mt-1 text-sm text-red-600">{errors.minutes}</div>}
+              <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Minuten</span>
+              <div className="relative mt-1">
+                <input
+                  type="number"
+                  step="1"
+                  min={0}
+                  max={59}
+                  className={`number-no-spinner w-full p-2 pr-10 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
+                  value={minutesInput}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    let num = v === '' ? 0 : Math.floor(Number(v)) || 0;
+                    if (num < 0) num = 0;
+                    if (num > 59) num = 59;
+                    setMinutesInput(num);
+                  }}
+                />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col">
+                  <button
+                    type="button"
+                    className={`h-4 w-6 text-[10px] rounded-t ${darkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                    onClick={() => setMinutesInput((v) => Math.min(59, v + 1))}
+                    title="+1m"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    className={`h-4 w-6 text-[10px] rounded-b ${darkMode ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-300 hover:bg-gray-400 text-gray-900'}`}
+                    onClick={() => setMinutesInput((v) => Math.max(0, v - 1))}
+                    title="-1m"
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+              {errors.minutes && <div className={`mt-1 text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`}>{errors.minutes}</div>}
             </label>
           </div>
           <label className="block">
-            <span className="text-sm font-medium text-gray-900">Beschreibung</span>
+            <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Beschreibung</span>
             <input
               type="text"
-              className="w-full mt-1 p-2 border border-gray-300 rounded bg-white text-gray-900"
+              className={`w-full mt-1 p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
-            {errors.description && <div className="mt-1 text-sm text-red-600">{errors.description}</div>}
+            {errors.description && <div className={`mt-1 text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`}>{errors.description}</div>}
           </label>
           <div className="flex gap-3 justify-end pt-2">
             <button 
-              className="px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-100 text-gray-700" 
+              className={`px-4 py-2 rounded border font-medium ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100'}`} 
               onClick={onClose}
             >
               Abbrechen
             </button>
             <button
-              className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium"
+              className={`px-4 py-2 rounded ${darkMode ? 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400' : 'bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400'} text-white font-medium`}
               disabled={Object.keys(computeErrors({ date, hours: hoursInput, minutes: minutesInput, description })).length > 0}
               onClick={() => {
                 const e = computeErrors({ date, hours: hoursInput, minutes: minutesInput, description });
@@ -164,7 +213,8 @@ function TransactionModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -239,28 +289,28 @@ function History({
   return (
     <div className="mt-6">
       <div className="mb-4">
-        <h3 className="text-lg font-semibold mb-3">Historie</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+        <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Historie</h3>
+        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 p-4 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-300'}`}>
           <input
             type="text"
             placeholder="Nach Beschreibung suchen..."
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            className={`w-full px-3 py-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
+            className={`w-full px-4 py-2 rounded border font-medium transition ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-600 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
           />
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as any)}
-            className={`w-full px-3 py-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'}`}
+            className={`w-full px-4 py-2 rounded border font-medium transition ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
           >
             <option value="ALL">Alle Typen</option>
             <option value="EARNED">Hinzugefügt</option>
             <option value="SPENT">Abgezogen</option>
           </select>
           <div className="flex items-center gap-2">
-            <span className="text-sm whitespace-nowrap">Sortiert nach: {sortKey === 'date' ? 'Datum' : sortKey === 'description' ? 'Beschreibung' : 'Stunden'}</span>
+            <span className={`text-sm font-medium whitespace-nowrap ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Sortiert nach: {sortKey === 'date' ? 'Datum' : sortKey === 'description' ? 'Beschreibung' : 'Stunden'}</span>
             <button
-              className={`px-3 py-1 border rounded ${darkMode ? 'bg-gray-700 hover:bg-gray-600 border-gray-600' : 'bg-white hover:bg-gray-100 border-gray-300'}`}
+              className={`px-3 py-1 border rounded font-medium ${darkMode ? 'bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-300' : 'bg-white hover:bg-gray-100 border-gray-300 text-gray-900'}`}
               onClick={onToggleSortDir}
               title="Sortierreihenfolge umschalten"
             >
@@ -269,13 +319,13 @@ function History({
           </div>
         </div>
       </div>
-      <div className="overflow-auto rounded-xl bg-white dark:bg-gray-800 shadow">
+      <div className={`rounded-xl shadow-xl border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} max-h-[440px] overflow-y-auto overflow-x-auto themed-scrollbar ${darkMode ? 'ts-dark' : 'ts-light'}`}>
         <table className="min-w-full text-left text-sm">
-          <thead className="sticky top-0 bg-white dark:bg-gray-800">
-            <tr className="border-b">
-              <th className="p-2">
+          <thead className={`sticky top-0 z-10 ${darkMode ? 'bg-gray-900/95 backdrop-blur border-b border-gray-700' : 'bg-gray-50/95 backdrop-blur border-b border-gray-200'}`}>
+            <tr className={`font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+              <th className="px-3 py-2">
                 <button 
-                  className="hover:underline flex items-center gap-1" 
+                  className="hover:underline flex items-center gap-1"
                   onClick={() => {
                     if (sortKey === 'date') {
                       onToggleSortDir();
@@ -287,9 +337,9 @@ function History({
                   Datum {sortKey === 'date' && (sortDir === 'asc' ? '▲' : '▼')}
                 </button>
               </th>
-              <th className="p-2">
+              <th className={`px-3 py-2 font-bold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
                 <button 
-                  className="hover:underline flex items-center gap-1" 
+                  className={`hover:underline flex items-center gap-1 ${darkMode ? 'text-gray-200' : 'text-gray-900'}`} 
                   onClick={() => {
                     if (sortKey === 'description') {
                       onToggleSortDir();
@@ -301,9 +351,9 @@ function History({
                   Beschreibung {sortKey === 'description' && (sortDir === 'asc' ? '▲' : '▼')}
                 </button>
               </th>
-              <th className="p-2 text-right">
+              <th className={`px-3 py-2 font-bold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
                 <button 
-                  className="hover:underline flex items-center gap-1 ml-auto" 
+                  className={`hover:underline flex items-center gap-1 ${darkMode ? 'text-gray-200' : 'text-gray-900'}`} 
                   onClick={() => {
                     if (sortKey === 'minutes') {
                       onToggleSortDir();
@@ -315,28 +365,32 @@ function History({
                   Stunden {sortKey === 'minutes' && (sortDir === 'asc' ? '▲' : '▼')}
                 </button>
               </th>
-              <th className="p-2 text-right">Laufender Saldo</th>
-              <th className="p-2 text-right">Aktionen</th>
+              <th className={`px-3 py-2 font-bold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Laufender Saldo</th>
+              <th className={`px-3 py-2 font-bold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Aktionen</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((t) => (
-              <tr key={t._id || `${t.date}-${t.description}-${t.minutes}`} className={`border-b ${darkMode ? 'odd:bg-gray-900 even:bg-gray-800' : 'odd:bg-gray-100 even:bg-white'}`}>
-                <td className="p-2">{t.date}</td>
-                <td className="p-2">{t.description}</td>
-                <td className="p-2 text-right font-mono">{t.type === 'EARNED' ? '+' : '-'}{formatHMM(t.minutes)}</td>
-                <td className="p-2 text-right font-mono">{formatHMM((rows.find(r => r._id === t._id)?.running) || 0)}</td>
-                <td className="p-2 text-right space-x-2">
+              <tr key={t._id || `${t.date}-${t.description}-${t.minutes}`} className={`border-b ${darkMode ? 'border-gray-750 hover:bg-gray-800/70 odd:bg-gray-900/60 even:bg-gray-850/60' : 'border-gray-200 hover:bg-gray-50 odd:bg-white even:bg-gray-50/60'} transition-colors`}>
+                <td className={`px-3 py-3 font-medium whitespace-nowrap ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>{formatDateShort(t.date)}</td>
+                <td className={`px-3 py-3 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{t.description}</td>
+                <td className={`px-3 py-3 text-right font-mono font-bold ${t.type === 'EARNED' ? (darkMode ? 'text-green-300' : 'text-green-700') : (darkMode ? 'text-red-300' : 'text-red-700')}`}>
+                  {t.type === 'EARNED' ? '+' : '-'}{formatHMM(t.minutes)}
+                </td>
+                <td className={`px-3 py-3 text-right font-mono font-bold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                  {formatHMM((rows.find(r => r._id === t._id)?.running) || 0)}
+                </td>
+                <td className="px-3 py-2 text-right space-x-2 whitespace-nowrap">
                   {t._id ? (
                     <>
                       <button
-                        className="px-2 py-1 text-xs rounded bg-gray-600 hover:bg-gray-700 text-white"
+                        className={`px-2.5 py-1 text-xs font-bold rounded-full text-white shadow-sm transition ${darkMode ? 'bg-blue-600 hover:bg-blue-500' : 'bg-blue-600 hover:bg-blue-500'}`}
                         onClick={() => onEdit(t)}
                       >
                         Bearbeiten
                       </button>
                       <button
-                        className="px-2 py-1 text-xs rounded bg-red-600 hover:bg-red-700 text-white"
+                        className={`px-2.5 py-1 text-xs font-bold rounded-full text-white shadow-sm transition ${darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-600 hover:bg-red-500'}`}
                         onClick={() => {
                           if (confirm('Diesen Eintrag wirklich löschen?')) onDelete(t._id!);
                         }}
@@ -366,37 +420,43 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  const { days, monthLabel, totalsByDay, weeklyTotals } = useMemo(() => {
+  const isoWeek = (y: number, m: number, d: number) => {
+    const date = new Date(Date.UTC(y, m, d));
+    const dayNum = date.getUTCDay() === 0 ? 7 : date.getUTCDay();
+    date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+    return weekNo;
+  };
+
+  const { days, monthLabel, totalsByDay, weeklyTotals, monthlyEarned } = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
     const first = new Date(year, month, 1);
     const last = new Date(year, month + 1, 0);
 
+    let monthlyEarned = 0;
     const totals = new Map<number, number>();
     transactions.forEach((t) => {
       const d = new Date(t.date);
       if (d.getFullYear() === year && d.getMonth() === month) {
         const delta = t.type === 'EARNED' ? t.minutes : -t.minutes;
         totals.set(d.getDate(), (totals.get(d.getDate()) || 0) + delta);
+        if (t.type === 'EARNED') {
+          monthlyEarned += t.minutes;
+        }
       }
     });
 
-    // Calculate weekly totals
+    // Calculate weekly totals by ISO week number (KW), counting only additions (no deductions)
     const weeks = new Map<number, number>();
-    const firstWeekday = (first.getDay() + 6) % 7;
-    let weekIdx = 0;
-    let weekTotal = 0;
-    for (let i = 0; i < firstWeekday; i++) weekTotal = 0;
-    for (let d = 1; d <= last.getDate(); d++) {
-      const dayOfWeek = (firstWeekday + d - 1) % 7;
-      weekTotal += totals.get(d) || 0;
-      if (dayOfWeek === 6) {
-        weeks.set(weekIdx, weekTotal);
-        weekTotal = 0;
-        weekIdx++;
-      }
-    }
-    if (weekTotal !== 0) weeks.set(weekIdx, weekTotal);
+    transactions.forEach((t) => {
+      if (t.type !== 'EARNED') return;
+      const d = new Date(t.date);
+      if (d.getFullYear() !== year || d.getMonth() !== month) return;
+      const w = isoWeek(year, month, d.getDate());
+      weeks.set(w, (weeks.get(w) || 0) + t.minutes);
+    });
 
     // Build calendar with Monday as first day
     const startWeekday = (first.getDay() + 6) % 7; // 0=Mon .. 6=Sun
@@ -404,7 +464,7 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
     const daysInMonth = Array.from({ length: last.getDate() }, (_, i) => i + 1);
     const gridDays: (number | null)[] = [...leading, ...daysInMonth];
     const monthLabelStr = first.toLocaleString('de-DE', { month: 'long', year: 'numeric' });
-    return { days: gridDays, monthLabel: monthLabelStr, totalsByDay: totals, weeklyTotals: weeks };
+    return { days: gridDays, monthLabel: monthLabelStr, totalsByDay: totals, weeklyTotals: weeks, monthlyEarned };
   }, [transactions, currentMonth]);
 
   function prevMonth() {
@@ -415,11 +475,14 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
   }
 
   const weekDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  const weeklyEntries = Array.from(weeklyTotals.entries()).sort((a, b) => a[0] - b[0]);
+  const weeklyTargetMinutes = 20 * 60; // 20h Wochenziel
+  const monthlyTargetMinutes = 80 * 60; // 80h Monatsziel
 
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className={`text-lg font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>📅 Kalenderansicht</h3>
+        <h3 className={`text-lg font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>📅 Kalenderansicht</h3>
         <div className="flex items-center gap-2">
           <button 
             className={`px-3 py-1 rounded transition ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200 text-gray-700'}`}
@@ -427,7 +490,7 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
           >
             ◀
           </button>
-          <div className={`font-medium min-w-[160px] text-center ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{monthLabel}</div>
+        <div className={`font-bold min-w-[160px] text-center ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>{monthLabel}</div>
           <button 
             className={`px-3 py-1 rounded transition ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200 text-gray-700'}`}
             onClick={nextMonth}
@@ -436,86 +499,156 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        <div className="lg:col-span-3">
-          <div className={`rounded-xl shadow-lg p-4 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {weekDays.map((w) => (
-            <div key={w} className={`text-center text-xs font-semibold py-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              {w}
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-1">
-          {days.map((d, idx) => {
-            const isToday = (() => {
-              if (!d) return false;
-              const base = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), d);
-              return base.toDateString() === today.toDateString();
-            })();
-            const hasData = d && typeof totalsByDay.get(d) === 'number' && totalsByDay.get(d)! !== 0;
-            const total = d ? totalsByDay.get(d) || 0 : 0;
-            
-            return (
-              <div
-                key={idx}
-                className={`min-h-[70px] rounded-lg p-2 flex flex-col transition-all ${
-                  d 
-                    ? darkMode
-                      ? `${isToday ? 'bg-blue-900/50 border-2 border-blue-500' : 'bg-gray-700 hover:bg-gray-600 border border-gray-600'}`
-                      : `${isToday ? 'bg-blue-50 border-2 border-blue-500' : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'}`
-                    : 'bg-transparent'
-                }`}
-              >
-                {d ? (
-                  <>
-                    <div className="flex items-start justify-between mb-1">
-                      <div className={`text-xs font-semibold ${
-                        isToday 
-                          ? darkMode ? 'text-blue-400' : 'text-blue-600'
-                          : darkMode ? 'text-gray-200' : 'text-gray-700'
-                      }`}>
-                        {d}
-                      </div>
-                      <button
-                        className="text-[10px] px-1.5 py-0.5 rounded bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
-                        onClick={() => {
-                          const isoLocal = localISO(currentMonth.getFullYear(), currentMonth.getMonth(), d);
-                          onQuickAdd(isoLocal);
-                        }}
-                      >
-                        +
-                      </button>
-                    </div>
-                    {hasData ? (
-                      <div className={`mt-auto text-center py-0.5 px-1 rounded text-[11px] font-semibold ${
-                        total >= 0 
-                          ? darkMode ? 'bg-green-900/60 text-green-400' : 'bg-green-100 text-green-700'
-                          : darkMode ? 'bg-red-900/60 text-red-400' : 'bg-red-100 text-red-700'
-                      }`}>
-                        {total > 0 ? '+' : ''}{formatHMM(total)}h
-                      </div>
-                    ) : (
-                      <div className={`mt-auto text-center text-[10px] ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>—</div>
-                    )}
-                  </>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-            </div>
-        </div>
-        <div className={`rounded-xl shadow-lg p-4 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
-          <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Std pro Woche</h4>
-          <div className="space-y-2">
-            {Array.from(weeklyTotals.entries()).map(([weekIdx, total]) => (
-              <div key={weekIdx} className={`text-sm p-2 rounded ${total >= 0 ? darkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700' : darkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700'}`}>
-                <div className="font-mono text-center text-lg">{formatHMM(total)}</div>
-                <div className="text-xs text-center opacity-70">Wo. {weekIdx + 1}</div>
+      <div className="space-y-4">
+        <div className={`rounded-xl shadow-lg p-4 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border-2 border-gray-300'}`}>
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {weekDays.map((w) => (
+              <div key={w} className={`text-center text-xs font-bold py-2 ${darkMode ? 'text-gray-400' : 'text-gray-900'}`}>
+                {w}
               </div>
             ))}
           </div>
+          <div className="grid grid-cols-7 gap-1">
+            {days.map((d, idx) => {
+              const isToday = (() => {
+                if (!d) return false;
+                const base = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), d);
+                return base.toDateString() === today.toDateString();
+              })();
+              const hasData = d && typeof totalsByDay.get(d) === 'number' && totalsByDay.get(d)! !== 0;
+              const total = d ? totalsByDay.get(d) || 0 : 0;
+
+              return (
+                <div
+                  key={idx}
+                  className={`min-h-[70px] rounded-lg p-2 flex flex-col transition-all ${
+                    d
+                      ? darkMode
+                        ? `${isToday ? 'bg-blue-900/50 border-2 border-blue-500' : 'bg-gray-700 hover:bg-gray-600 border border-gray-600'}`
+                        : `${isToday ? 'bg-blue-50 border-2 border-blue-500' : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'}`
+                      : 'bg-transparent'
+                  }`}
+                >
+                  {d ? (
+                    <>
+                      <div className="flex items-start justify-between mb-1">
+                        <div
+                          className={`text-xs font-bold text-center ${
+                            isToday
+                              ? darkMode
+                                ? 'text-blue-400'
+                                : 'text-blue-700'
+                              : darkMode
+                                ? 'text-gray-200'
+                                : 'text-gray-900'
+                          }`}
+                        >
+                          {d}
+                        </div>
+                        <button
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
+                          onClick={() => {
+                            const isoLocal = localISO(currentMonth.getFullYear(), currentMonth.getMonth(), d);
+                            onQuickAdd(isoLocal);
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                      {hasData ? (
+                        <div
+                          className={`mt-auto text-center py-0.5 px-1 rounded text-[11px] font-bold ${
+                            total >= 0
+                              ? darkMode
+                                ? 'bg-green-900/60 text-green-400'
+                                : 'bg-green-100 text-green-800'
+                              : darkMode
+                                ? 'bg-red-900/60 text-red-400'
+                                : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {total > 0 ? '+' : ''}
+                          {formatHMM(total)}h
+                        </div>
+                      ) : (
+                        <div className={`mt-auto text-center text-[10px] font-medium ${darkMode ? 'text-gray-500' : 'text-gray-700'}`}>
+                          —
+                        </div>
+                      )}
+                    </>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className={`rounded-xl shadow-lg p-4 border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-2 border-gray-300'}`}>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className={`font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Std pro Woche</h4>
+            <span className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+              Ziel: 20:00h · Monat: 80:00h · {monthLabel}
+            </span>
+          </div>
+          <div className={`text-xs mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+            {monthlyEarned < monthlyTargetMinutes
+              ? `Monat: Noch ${formatHMM(monthlyTargetMinutes - monthlyEarned)}h bis 80h`
+              : `Monat: Über Ziel: +${formatHMM(monthlyEarned - monthlyTargetMinutes)}h`}
+          </div>
+          {weeklyEntries.length === 0 ? (
+            <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>Keine Daten in diesem Monat</div>
+          ) : (
+            <div className={`space-y-3 max-h-72 overflow-y-auto pr-1 themed-scrollbar ${darkMode ? 'ts-dark' : 'ts-light'}`}>
+              {weeklyEntries.map(([weekIdx, total], idx) => {
+                const displayWeek = idx + 1;
+                const positive = total >= 0;
+                const over = total - weeklyTargetMinutes;
+                const baseRatio = Math.min(total, weeklyTargetMinutes) / weeklyTargetMinutes;
+                const widthPercent = Math.min(100, Math.max(0, Math.round(baseRatio * 100)));
+                const overflowPercent = 0; // no bar beyond target
+                const remaining = weeklyTargetMinutes - total;
+                return (
+                  <div key={weekIdx} className="space-y-1">
+                    <div className="flex items-center justify-between text-sm font-medium">
+                      <span className={darkMode ? 'text-gray-200' : 'text-gray-900'}>Woche {displayWeek}</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`${darkMode ? 'bg-green-700 text-white' : 'bg-green-100 text-green-800'} px-2 py-0.5 rounded-full font-mono`}
+                          title={`Erreicht: ${formatHMM(total)}h`}>
+                          {`${formatHMM(Math.min(total, weeklyTargetMinutes))}h`}
+                        </span>
+                        {remaining > 0 ? (
+                          <span className={`${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800'} px-2 py-0.5 rounded-full`}
+                            title="Noch bis Ziel">
+                            {`Noch ${formatHMM(remaining)}h`}
+                          </span>
+                        ) : (
+                          <span className={`${darkMode ? 'bg-green-600 text-white' : 'bg-green-500 text-white'} px-2 py-0.5 rounded-full`}
+                            title="Über Ziel">
+                            {`Über +${formatHMM(Math.abs(remaining))}h`}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className={`relative h-3 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                      <div
+                        className={`absolute left-0 top-0 h-3 rounded-full ${positive ? (darkMode ? 'bg-green-500' : 'bg-green-600') : (darkMode ? 'bg-red-500' : 'bg-red-600')}`}
+                        style={{ width: `${widthPercent}%` }}
+                        title={`Erreicht: ${formatHMM(total)}h`}
+                      />
+                      <div
+                        className={`absolute h-2 w-2 rounded-full border ${darkMode ? 'border-white/70' : 'border-gray-600'} bg-transparent`}
+                        style={{ left: '100%', top: '50%', transform: 'translate(-50%, -50%)' }}
+                        title="Ziel 20h"
+                      />
+                    </div>
+                    <div className="sr-only">
+                      {remaining > 0 ? `Noch ${formatHMM(remaining)}h bis Ziel` : `Über Ziel: +${formatHMM(Math.abs(remaining))}h`}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -605,7 +738,7 @@ export default function App() {
   }
 
   if (!authenticated) {
-    return <LoginScreen onLogin={handleLogin} error={loginError} loading={loginLoading} />;
+    return <LoginScreen onLogin={handleLogin} error={loginError} loading={loginLoading} darkMode={darkMode} onToggleTheme={toggleTheme} />;
   }  async function handleSubmit(tx: Omit<Transaction, '_id'>) {
     if (editingTx && editingTx._id) {
       await updateTransaction(editingTx._id, tx);
@@ -624,15 +757,15 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <div className="max-w-4xl mx-auto p-4 space-y-4">
-        <div className="flex justify-between items-center mb-2">
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className="max-w-4xl mx-auto p-4 space-y-5">
+        <div className="flex justify-between items-center mb-4">
           <button
             onClick={toggleTheme}
-            className={`px-4 py-2 rounded-lg transition ${
+            className={`px-4 py-2 rounded-lg font-medium transition ${
               darkMode 
                 ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
-                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
             }`}
             title="Theme wechseln"
           >
@@ -640,10 +773,10 @@ export default function App() {
           </button>
           <button
             onClick={handleLogout}
-            className={`px-4 py-2 text-sm rounded-lg transition ${
+            className={`px-4 py-2 font-medium rounded-lg transition ${
               darkMode
                 ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
             🚪 Abmelden
@@ -657,6 +790,7 @@ export default function App() {
           initialDate={selectedDate ?? (editingTx?.date ?? undefined)}
           initialMinutes={editingTx?.minutes}
           initialDescription={editingTx?.description}
+          darkMode={darkMode}
           onClose={() => {
             setModalType(null);
             setSelectedDate(null);

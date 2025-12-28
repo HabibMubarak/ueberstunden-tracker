@@ -4,9 +4,11 @@ interface LoginScreenProps {
   onLogin: (password: string) => void;
   error: string;
   loading: boolean;
+  darkMode: boolean;
+  onToggleTheme: () => void;
 }
 
-export default function LoginScreen({ onLogin, error, loading }: LoginScreenProps) {
+export default function LoginScreen({ onLogin, error, loading, darkMode, onToggleTheme }: LoginScreenProps) {
   const [password, setPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -15,16 +17,25 @@ export default function LoginScreen({ onLogin, error, loading }: LoginScreenProp
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-blue-50 to-indigo-100'} flex items-center justify-center p-4`}>
+      <div className="absolute top-4 left-4">
+        <button
+          onClick={onToggleTheme}
+          className={`px-3 py-1.5 rounded-lg font-medium transition ${darkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'}`}
+          title="Theme wechseln"
+        >
+          {darkMode ? '☀️ Light' : '🌙 Dark'}
+        </button>
+      </div>
+      <div className={`${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'} rounded-2xl shadow-xl p-8 w-full max-w-md`}>
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Überstunden-Tracker</h1>
-          <p className="text-gray-600">Bitte melde dich an</p>
+          <h1 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Überstunden-Tracker</h1>
+          <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Bitte melde dich an</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
               Passwort
             </label>
             <input
@@ -32,7 +43,7 @@ export default function LoginScreen({ onLogin, error, loading }: LoginScreenProp
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'}`}
               placeholder="Passwort eingeben"
               required
               autoFocus
@@ -40,7 +51,7 @@ export default function LoginScreen({ onLogin, error, loading }: LoginScreenProp
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className={`${darkMode ? 'bg-red-900/40 border border-red-700 text-red-300' : 'bg-red-50 border border-red-200 text-red-700'} px-4 py-3 rounded-lg text-sm`}>
               {error}
             </div>
           )}
@@ -48,7 +59,7 @@ export default function LoginScreen({ onLogin, error, loading }: LoginScreenProp
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center"
+            className={`w-full ${darkMode ? 'bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400' : 'bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400'} text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center`}
           >
             {loading ? (
               <>
@@ -64,7 +75,7 @@ export default function LoginScreen({ onLogin, error, loading }: LoginScreenProp
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-500">
+        <div className={`mt-6 text-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
           <p>🔒 Deine Daten sind sicher verschlüsselt</p>
         </div>
       </div>

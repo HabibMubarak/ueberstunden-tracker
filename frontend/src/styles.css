@@ -1,3 +1,61 @@
+/* Themed custom scrollbars for light/dark */
+.number-no-spinner::-webkit-outer-spin-button,
+.number-no-spinner::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+.number-no-spinner {
+	-moz-appearance: textfield; /* Firefox */
+	-webkit-appearance: textfield; /* Chrome/Safari */
+	appearance: textfield;
+}
+
+/* Calendar icon visibility for date inputs */
+.calendar-icon-light::-webkit-calendar-picker-indicator {
+	filter: invert(1); /* make icon dark on light background */
+}
+.calendar-icon-dark::-webkit-calendar-picker-indicator {
+	filter: invert(0); /* keep icon light on dark background */
+}
+.themed-scrollbar.ts-light {
+	scrollbar-width: thin; /* Firefox */
+	scrollbar-color: #9ca3af #e5e7eb; /* thumb track */
+}
+.themed-scrollbar.ts-light::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+.themed-scrollbar.ts-light::-webkit-scrollbar-track {
+	background: #e5e7eb; /* gray-200 */
+	border-radius: 8px;
+}
+.themed-scrollbar.ts-light::-webkit-scrollbar-thumb {
+	background: #9ca3af; /* gray-400 */
+	border-radius: 8px;
+}
+.themed-scrollbar.ts-light:hover::-webkit-scrollbar-thumb {
+	background: #6b7280; /* gray-500 */
+}
+
+.themed-scrollbar.ts-dark {
+	scrollbar-width: thin; /* Firefox */
+	scrollbar-color: #6b7280 #374151; /* thumb track */
+}
+.themed-scrollbar.ts-dark::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+.themed-scrollbar.ts-dark::-webkit-scrollbar-track {
+	background: #374151; /* gray-700 */
+	border-radius: 8px;
+}
+.themed-scrollbar.ts-dark::-webkit-scrollbar-thumb {
+	background: #6b7280; /* gray-500 */
+	border-radius: 8px;
+}
+.themed-scrollbar.ts-dark:hover::-webkit-scrollbar-thumb {
+	background: #9ca3af; /* gray-400 */
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
