@@ -178,6 +178,7 @@ function History({
   onToggleSortDir,
   onDelete,
   onEdit,
+  darkMode,
 }: {
   transactions: Transaction[];
   sortKey: SortKey;
@@ -186,9 +187,21 @@ function History({
   onToggleSortDir: () => void;
   onDelete: (id: string) => void;
   onEdit: (tx: Transaction) => void;
+  darkMode: boolean;
 }) {
+  const [searchText, setSearchText] = useState<string>('');
+  const [typeFilter, setTypeFilter] = useState<'ALL' | 'EARNED' | 'SPENT'>('ALL');
+
+  const filtered = useMemo(() => {
+    return transactions.filter((t) => {
+      const matchesType = typeFilter === 'ALL' || t.type === typeFilter;
+      const matchesSearch = searchText === '' || t.description.toLowerCase().includes(searchText.toLowerCase());
+      return matchesType && matchesSearch;
+    });
+  }, [transactions, typeFilter, searchText]);
+
   const sorted = useMemo(() => {
-    const list = [...transactions];
+    const list = [...filtered];
     list.sort((a, b) => {
       let cmp = 0;
       if (sortKey === 'date') {
@@ -201,7 +214,7 @@ function History({
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return list;
-  }, [transactions, sortKey, sortDir]);
+  }, [filtered, sortKey, sortDir]);
 
   const rows = useMemo(() => {
     // Berechne laufenden Saldo chronologisch (immer nach Datum sortiert)
@@ -225,17 +238,35 @@ function History({
 
   return (
     <div className="mt-6">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-lg font-semibold">Historie</h3>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">Sortiert nach: {sortKey === 'date' ? 'Datum' : sortKey === 'description' ? 'Beschreibung' : 'Stunden'}</span>
-          <button
-            className="px-3 py-1 border rounded bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={onToggleSortDir}
-            title="Sortierreihenfolge umschalten"
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold mb-3">Historie</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+          <input
+            type="text"
+            placeholder="Nach Beschreibung suchen..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className={`w-full px-3 py-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'}`}
+          />
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as any)}
+            className={`w-full px-3 py-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'}`}
           >
-            {sortDir === 'asc' ? '▲ Aufsteigend' : '▼ Absteigend'}
-          </button>
+            <option value="ALL">Alle Typen</option>
+            <option value="EARNED">Hinzugefügt</option>
+            <option value="SPENT">Abgezogen</option>
+          </select>
+          <div className="flex items-center gap-2">
+            <span className="text-sm whitespace-nowrap">Sortiert nach: {sortKey === 'date' ? 'Datum' : sortKey === 'description' ? 'Beschreibung' : 'Stunden'}</span>
+            <button
+              className={`px-3 py-1 border rounded ${darkMode ? 'bg-gray-700 hover:bg-gray-600 border-gray-600' : 'bg-white hover:bg-gray-100 border-gray-300'}`}
+              onClick={onToggleSortDir}
+              title="Sortierreihenfolge umschalten"
+            >
+              {sortDir === 'asc' ? '▲' : '▼'}
+            </button>
+          </div>
         </div>
       </div>
       <div className="overflow-auto rounded-xl bg-white dark:bg-gray-800 shadow">
@@ -290,7 +321,7 @@ function History({
           </thead>
           <tbody>
             {rows.map((t) => (
-              <tr key={t._id || `${t.date}-${t.description}-${t.minutes}`} className="border-b odd:bg-gray-50 dark:odd:bg-gray-900">
+              <tr key={t._id || `${t.date}-${t.description}-${t.minutes}`} className={`border-b ${darkMode ? 'odd:bg-gray-900 even:bg-gray-800' : 'odd:bg-gray-100 even:bg-white'}`}>
                 <td className="p-2">{t.date}</td>
                 <td className="p-2">{t.description}</td>
                 <td className="p-2 text-right font-mono">{t.type === 'EARNED' ? '+' : '-'}{formatHMM(t.minutes)}</td>
@@ -335,7 +366,7 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  const { days, monthLabel, totalsByDay } = useMemo(() => {
+  const { days, monthLabel, totalsByDay, weeklyTotals } = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
     const first = new Date(year, month, 1);
@@ -350,13 +381,30 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
       }
     });
 
+    // Calculate weekly totals
+    const weeks = new Map<number, number>();
+    const firstWeekday = (first.getDay() + 6) % 7;
+    let weekIdx = 0;
+    let weekTotal = 0;
+    for (let i = 0; i < firstWeekday; i++) weekTotal = 0;
+    for (let d = 1; d <= last.getDate(); d++) {
+      const dayOfWeek = (firstWeekday + d - 1) % 7;
+      weekTotal += totals.get(d) || 0;
+      if (dayOfWeek === 6) {
+        weeks.set(weekIdx, weekTotal);
+        weekTotal = 0;
+        weekIdx++;
+      }
+    }
+    if (weekTotal !== 0) weeks.set(weekIdx, weekTotal);
+
     // Build calendar with Monday as first day
     const startWeekday = (first.getDay() + 6) % 7; // 0=Mon .. 6=Sun
     const leading = Array.from({ length: startWeekday }, () => null);
     const daysInMonth = Array.from({ length: last.getDate() }, (_, i) => i + 1);
     const gridDays: (number | null)[] = [...leading, ...daysInMonth];
     const monthLabelStr = first.toLocaleString('de-DE', { month: 'long', year: 'numeric' });
-    return { days: gridDays, monthLabel: monthLabelStr, totalsByDay: totals };
+    return { days: gridDays, monthLabel: monthLabelStr, totalsByDay: totals, weeklyTotals: weeks };
   }, [transactions, currentMonth]);
 
   function prevMonth() {
@@ -388,7 +436,9 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
           </button>
         </div>
       </div>
-      <div className={`rounded-xl shadow-lg p-4 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="lg:col-span-3">
+          <div className={`rounded-xl shadow-lg p-4 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
         <div className="grid grid-cols-7 gap-1 mb-2">
           {weekDays.map((w) => (
             <div key={w} className={`text-center text-xs font-semibold py-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -453,6 +503,19 @@ function CalendarView({ transactions, onQuickAdd, darkMode }: { transactions: Tr
               </div>
             );
           })}
+        </div>
+            </div>
+        </div>
+        <div className={`rounded-xl shadow-lg p-4 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'}`}>
+          <h4 className={`font-semibold mb-3 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Std pro Woche</h4>
+          <div className="space-y-2">
+            {Array.from(weeklyTotals.entries()).map(([weekIdx, total]) => (
+              <div key={weekIdx} className={`text-sm p-2 rounded ${total >= 0 ? darkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700' : darkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700'}`}>
+                <div className="font-mono text-center text-lg">{formatHMM(total)}</div>
+                <div className="text-xs text-center opacity-70">Wo. {weekIdx + 1}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -614,6 +677,7 @@ export default function App() {
           setSelectedDate(tx.date);
           setModalType(tx.type);
         }}
+        darkMode={darkMode}
       />
 
       <CalendarView
