@@ -347,20 +347,20 @@ function SettingsModal({
       setPasswordError(err.response?.data?.error || 'Passwortänderung fehlgeschlagen');
     }
   };
-    <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/70' : 'bg-black/60'} backdrop-blur-sm flex items-center justify-center z-[9999]`}>
-      <div className={`${darkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'} rounded-2xl shadow-2xl p-5 sm:p-6 w-full mx-4 max-w-5xl max-h-[85vh] overflow-hidden flex flex-col themed-scrollbar ${darkMode ? 'ts-dark' : 'ts-light'}`}>
-        <div className="flex items-center justify-between mb-4 pb-4 border-b" style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}>
-          <h3 className={`text-xl font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>📋 CSV Import Vorschau</h3>
+    <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/70' : 'bg-black/60'} backdrop-blur-sm flex items-end sm:items-center justify-center z-[9999]`}>
+      <div className={`${darkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'} rounded-t-2xl sm:rounded-2xl shadow-2xl p-3 sm:p-5 md:p-6 w-full sm:mx-4 max-w-sm sm:max-w-2xl md:max-w-5xl max-h-[95vh] sm:max-h-[90vh] md:max-h-[85vh] overflow-hidden flex flex-col themed-scrollbar ${darkMode ? 'ts-dark' : 'ts-light'}`}>
+        <div className="flex items-center justify-between mb-2 sm:mb-4 pb-2 sm:pb-4 border-b" style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}>
+          <h3 className={`text-lg sm:text-xl font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>📋 CSV Import Vorschau</h3>
           <button
             onClick={() => setShowPreview(false)}
-            className={`text-3xl leading-none ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'}`}
+            className={`text-2xl sm:text-3xl leading-none ${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'}`}
           >
             ×
           </button>
         </div>
 
         {/* Summary */}
-        <div className={`mb-4 p-3 rounded-lg ${darkMode ? 'bg-blue-900/30 border border-blue-700/50' : 'bg-blue-50 border border-blue-200'}`}>
+        <div className={`mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg text-xs sm:text-sm ${darkMode ? 'bg-blue-900/30 border border-blue-700/50' : 'bg-blue-50 border border-blue-200'}`}>
           <div className={`text-sm ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>
             <span className="font-medium">Gültig:</span> {previewTransactions.filter(t => !t.error).length} | 
             <span className="font-medium ml-3">Fehler:</span> {previewTransactions.filter(t => t.error).length}
@@ -405,7 +405,7 @@ function SettingsModal({
                     </div>
                   ) : (
                     <>
-                      <div className="grid grid-cols-4 gap-2 text-sm">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-2 text-xs sm:text-sm">
                         <div>
                           <label className={`block text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Datum</label>
                           <input
@@ -876,13 +876,13 @@ function SettingsModal({
           </div>
         </div>
       ) : (
-      <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/65' : 'bg-black/50'} backdrop-blur-md flex items-center justify-center z-50`} onClick={onClose}>
-      <div className={`${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'} rounded-2xl shadow-2xl ring-1 ring-black/10 p-5 sm:p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto themed-scrollbar ${darkMode ? 'ts-dark' : 'ts-light'}`} onClick={(e) => e.stopPropagation()}>
-        <h2 className={`text-2xl font-semibold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>⚙️ Einstellungen</h2>
+      <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/65' : 'bg-black/50'} backdrop-blur-md flex items-end sm:items-center justify-center z-50`} onClick={onClose}>
+      <div className={`${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'} rounded-t-2xl sm:rounded-2xl shadow-2xl ring-1 ring-black/10 p-3 sm:p-5 md:p-6 w-full max-w-sm sm:max-w-lg md:max-w-3xl max-h-[95vh] sm:max-h-[90vh] md:max-h-[90vh] overflow-y-auto themed-scrollbar ${darkMode ? 'ts-dark' : 'ts-light'}`} onClick={(e) => e.stopPropagation()}>
+        <h2 className={`text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>⚙️ Einstellungen</h2>
         
         {/* Tabs */}
-        <div className="flex gap-2 mb-4 border-b pb-2" style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}>
-          <button onClick={() => setTab('work')} className={`px-4 py-2 rounded-t font-medium transition ${tab === 'work' ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white') : (darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900')}`}>
+        <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4 border-b pb-2 text-xs sm:text-base" style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}>
+          <button onClick={() => setTab('work')} className={`px-2 sm:px-4 py-2 rounded-t font-medium transition ${tab === 'work' ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white') : (darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900')}`}>
             💼 Arbeitszeit
           </button>
           <button onClick={() => setTab('display')} className={`px-4 py-2 rounded-t font-medium transition ${tab === 'display' ? (darkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white') : (darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900')}`}>
@@ -1377,8 +1377,8 @@ function TransactionModal({
   }, [date, hoursInput, minutesInput, description]);
 
   return createPortal(
-    <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/65' : 'bg-black/50'} backdrop-blur-md flex items-center justify-center z-50`} onClick={onClose}>
-      <div className={`${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'} rounded-2xl shadow-2xl ring-1 ring-black/10 p-5 sm:p-6 w-full max-w-lg sm:max-w-xl`} onClick={(e) => e.stopPropagation()}>
+    <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/65' : 'bg-black/50'} backdrop-blur-md flex items-end sm:items-center justify-center z-50`} onClick={onClose}>
+      <div className={`${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'} rounded-t-2xl sm:rounded-2xl shadow-2xl ring-1 ring-black/10 p-3 sm:p-5 md:p-6 w-full max-w-sm sm:max-w-lg md:max-w-xl`} onClick={(e) => e.stopPropagation()}>
         <h2 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           {type === 'EARNED' ? 'Stunden Hinzufügen' : 'Stunden Abziehen'}
         </h2>
@@ -1393,15 +1393,15 @@ function TransactionModal({
             />
             {errors.date && <div className={`mt-1 text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`}>{errors.date}</div>}
           </label>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
             <label className="block">
-              <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Stunden</span>
+              <span className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Stunden</span>
               <div className="relative mt-1">
                 <input
                   type="number"
                   step="1"
                   min={0}
-                  className={`number-no-spinner w-full p-2 pr-10 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
+                  className={`number-no-spinner w-full p-2 sm:p-2 pr-10 rounded border text-sm sm:text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
                   value={hoursInput.toString()}
                   onChange={(e) => {
                     const v = e.target.value;
@@ -1431,14 +1431,14 @@ function TransactionModal({
               {errors.hours && <div className={`mt-1 text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`}>{errors.hours}</div>}
             </label>
             <label className="block">
-              <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Minuten</span>
+              <span className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Minuten</span>
               <div className="relative mt-1">
                 <input
                   type="number"
                   step="1"
                   min={0}
                   max={59}
-                  className={`number-no-spinner w-full p-2 pr-10 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
+                  className={`number-no-spinner w-full p-2 sm:p-2 pr-10 rounded border text-sm sm:text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
                   value={minutesInput.toString()}
                   onChange={(e) => {
                     const v = e.target.value;
@@ -1791,16 +1791,16 @@ function CalendarView({ transactions, onQuickAdd, darkMode, weeklyTargetHours, m
           </button>
         </div>
       </div>
-      <div className="space-y-4">
-        <div className={`rounded-xl shadow-lg p-4 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border-2 border-gray-300'}`}>
-          <div className="grid grid-cols-7 gap-1 mb-2">
+      <div className="space-y-3 sm:space-y-4">
+        <div className={`rounded-xl shadow-lg p-2 sm:p-4 ${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border-2 border-gray-300'}`}>
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
             {weekDays.map((w) => (
-              <div key={w} className={`text-center text-xs font-bold py-2 ${darkMode ? 'text-gray-400' : 'text-gray-900'}`}>
+              <div key={w} className={`text-center text-xs font-bold py-1 sm:py-2 ${darkMode ? 'text-gray-400' : 'text-gray-900'}`}>
                 {w}
               </div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
             {days.map((d, idx) => {
               const isToday = (() => {
                 if (!d) return false;
@@ -1813,7 +1813,7 @@ function CalendarView({ transactions, onQuickAdd, darkMode, weeklyTargetHours, m
               return (
                 <div
                   key={idx}
-                  className={`min-h-[70px] rounded-lg p-2 flex flex-col transition-all ${
+                  className={`min-h-[50px] sm:min-h-[70px] rounded-lg p-1 sm:p-2 flex flex-col transition-all ${
                     d
                       ? darkMode
                         ? `${isToday ? 'bg-blue-900/50 border-2 border-blue-500' : 'bg-gray-700 hover:bg-gray-600 border border-gray-600'}`
@@ -1823,9 +1823,9 @@ function CalendarView({ transactions, onQuickAdd, darkMode, weeklyTargetHours, m
                 >
                   {d ? (
                     <>
-                      <div className="flex items-start justify-between mb-1">
+                      <div className="flex items-start justify-between mb-0.5 sm:mb-1">
                         <div
-                          className={`text-xs font-bold text-center ${
+                          className={`text-[10px] sm:text-xs font-bold text-center ${
                             isToday
                               ? darkMode
                                 ? 'text-blue-400'
@@ -1838,7 +1838,7 @@ function CalendarView({ transactions, onQuickAdd, darkMode, weeklyTargetHours, m
                           {d}
                         </div>
                         <button
-                          className="text-[10px] px-1.5 py-0.5 rounded bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
+                          className="text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded bg-green-600 hover:bg-green-700 text-white font-medium transition-colors"
                           onClick={() => {
                             const isoLocal = localISO(currentMonth.getFullYear(), currentMonth.getMonth(), d);
                             onQuickAdd(isoLocal);
@@ -1849,7 +1849,7 @@ function CalendarView({ transactions, onQuickAdd, darkMode, weeklyTargetHours, m
                       </div>
                       {hasData ? (
                         <div
-                          className={`mt-auto text-center py-0.5 px-1 rounded text-[11px] font-bold ${
+                          className={`mt-auto text-center py-0.5 px-0.5 sm:px-1 rounded text-[9px] sm:text-[11px] font-bold ${
                             total >= 0
                               ? darkMode
                                 ? 'bg-green-900/60 text-green-400'
@@ -1863,7 +1863,7 @@ function CalendarView({ transactions, onQuickAdd, darkMode, weeklyTargetHours, m
                           {formatHMM(total)}h
                         </div>
                       ) : (
-                        <div className={`mt-auto text-center text-[10px] font-medium ${darkMode ? 'text-gray-500' : 'text-gray-700'}`}>
+                        <div className={`mt-auto text-center text-[8px] sm:text-[10px] font-medium ${darkMode ? 'text-gray-500' : 'text-gray-700'}`}>
                           —
                         </div>
                       )}
@@ -1875,14 +1875,14 @@ function CalendarView({ transactions, onQuickAdd, darkMode, weeklyTargetHours, m
           </div>
         </div>
 
-        <div className={`rounded-xl shadow-lg p-4 border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-2 border-gray-300'}`}>
-          <div className="flex items-center justify-between mb-2">
-            <h4 className={`font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Std pro Woche</h4>
+        <div className={`rounded-xl shadow-lg p-2 sm:p-4 border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-2 border-gray-300'}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-2">
+            <h4 className={`font-bold text-sm sm:text-base ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Std pro Woche</h4>
             <span className={`text-xs font-medium ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
               Ziel: {formatHMM(weeklyTargetMinutes)}h · Monat: {formatHMM(monthlyTargetMinutes)}h · {monthLabel}
             </span>
           </div>
-          <div className={`text-xs mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+          <div className={`text-xs mb-2 sm:mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
             {monthlyEarned < monthlyTargetMinutes
               ? `Monat: Noch ${formatHMM(monthlyTargetMinutes - monthlyEarned)}h bis ${formatHMM(monthlyTargetMinutes)}h`
               : `Monat: Über Ziel: +${formatHMM(monthlyEarned - monthlyTargetMinutes)}h`}
@@ -2226,12 +2226,12 @@ export default function App() {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
-        <div className="max-w-4xl mx-auto p-4 space-y-5">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2">
+        <div className="max-w-5xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
             <button
               onClick={toggleTheme}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
+              className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg font-medium text-sm sm:text-base transition ${
                 darkMode 
                   ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
@@ -2242,7 +2242,7 @@ export default function App() {
             </button>
             <button
               onClick={() => setShowSettings(true)}
-              className={`px-4 py-2 rounded-lg font-medium transition ${
+              className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg font-medium text-sm sm:text-base transition ${
                 darkMode 
                   ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
@@ -2254,7 +2254,7 @@ export default function App() {
           </div>
           <button
             onClick={handleLogout}
-            className={`px-4 py-2 font-medium rounded-lg transition ${
+            className={`w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-2 font-medium text-sm sm:text-base rounded-lg transition ${
               darkMode
                 ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
                 : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
@@ -2267,9 +2267,9 @@ export default function App() {
       
       {/* Show earnings if hourly rate set */}
       {settings.hourlyRate > 0 && (
-        <div className={`rounded-xl shadow-lg p-4 border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-blue-50 border-blue-200'}`}>
-          <div className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Gesamtverdienst (Saldo × Stundensatz)</div>
-          <div className={`mt-1 text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+        <div className={`rounded-xl shadow-lg p-3 sm:p-4 border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-blue-50 border-blue-200'}`}>
+          <div className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Gesamtverdienst (Saldo × Stundensatz)</div>
+          <div className={`mt-2 text-xl sm:text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
             {((balanceMinutes / 60) * settings.hourlyRate).toFixed(2)} €
           </div>
         </div>
