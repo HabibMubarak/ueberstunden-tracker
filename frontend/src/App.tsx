@@ -1309,21 +1309,21 @@ date,type,minutes,description
 function BalanceBadge({ balanceMinutes, darkMode }: { balanceMinutes: number; darkMode: boolean }) {
   const color = balanceMinutes >= 0 ? 'text-green-500' : 'text-red-500';
   return (
-    <div className={`rounded-xl shadow-xl p-6 border-2 ${darkMode ? 'bg-gradient-to-br from-green-900/30 to-blue-900/30 border-green-700' : 'bg-gradient-to-br from-green-50 to-blue-50 border-green-200'}`}>
-      <div className={`text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Aktueller Saldo</div>
-      <div className={`mt-2 text-4xl font-extrabold ${color}`}>{formatHMM(balanceMinutes)} Std</div>
+    <div className={`rounded-xl shadow-xl p-3 sm:p-6 border-2 ${darkMode ? 'bg-gradient-to-br from-green-900/30 to-blue-900/30 border-green-700' : 'bg-gradient-to-br from-green-50 to-blue-50 border-green-200'}`}>
+      <div className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Aktueller Saldo</div>
+      <div className={`mt-2 text-2xl sm:text-4xl font-extrabold ${color}`}>{formatHMM(balanceMinutes)} Std</div>
     </div>
   );
 }
 
 function ActionButtons({ onAdd, onSpend }: { onAdd: () => void; onSpend: () => void }) {
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <button className="px-4 py-4 rounded-lg bg-green-600 hover:bg-green-700 active:scale-95 text-white font-semibold shadow-lg transition-all" onClick={onAdd}>
-        ➕ Stunden Hinzufügen
+    <div className="grid grid-cols-2 gap-2 sm:gap-3">
+      <button className="px-2 sm:px-4 py-3 sm:py-4 rounded-lg bg-green-600 hover:bg-green-700 active:scale-95 text-white font-semibold text-xs sm:text-base shadow-lg transition-all" onClick={onAdd}>
+        ➕ Hinzufügen
       </button>
-      <button className="px-4 py-4 rounded-lg bg-red-600 hover:bg-red-700 active:scale-95 text-white font-semibold shadow-lg transition-all" onClick={onSpend}>
-        ➖ Stunden Abziehen
+      <button className="px-2 sm:px-4 py-3 sm:py-4 rounded-lg bg-red-600 hover:bg-red-700 active:scale-95 text-white font-semibold text-xs sm:text-base shadow-lg transition-all" onClick={onSpend}>
+        ➖ Abziehen
       </button>
     </div>
   );
@@ -1379,15 +1379,15 @@ function TransactionModal({
   return createPortal(
     <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/65' : 'bg-black/50'} backdrop-blur-md flex items-end sm:items-center justify-center z-50`} onClick={onClose}>
       <div className={`${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'} rounded-t-2xl sm:rounded-2xl shadow-2xl ring-1 ring-black/10 p-3 sm:p-5 md:p-6 w-full max-w-sm sm:max-w-lg md:max-w-xl`} onClick={(e) => e.stopPropagation()}>
-        <h2 className={`text-xl font-semibold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-          {type === 'EARNED' ? 'Stunden Hinzufügen' : 'Stunden Abziehen'}
+        <h2 className={`text-lg sm:text-xl font-semibold mb-3 sm:mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+          {type === 'EARNED' ? '➕ Stunden Hinzufügen' : '➖ Stunden Abziehen'}
         </h2>
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           <label className="block">
-            <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Datum</span>
+            <span className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Datum</span>
             <input
               type="date"
-              className={`w-full mt-1 p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500 calendar-icon-dark' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500 calendar-icon-light'} focus:outline-none`}
+              className={`w-full mt-1 p-2 sm:p-2 rounded border text-xs sm:text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500 calendar-icon-dark' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500 calendar-icon-light'} focus:outline-none`}
               value={date}
               onChange={(e) => setDate(e.target.value)}
             />
@@ -1471,18 +1471,18 @@ function TransactionModal({
             </label>
           </div>
           <label className="block">
-            <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Beschreibung</span>
+            <span className={`text-xs sm:text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Beschreibung</span>
             <input
               type="text"
-              className={`w-full mt-1 p-2 rounded border ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
+              className={`w-full mt-1 p-2 sm:p-2 rounded border text-xs sm:text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
-            {errors.description && <div className={`mt-1 text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`}>{errors.description}</div>}
+            {errors.description && <div className={`mt-1 text-xs sm:text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`}>{errors.description}</div>}
           </label>
-          <div className="flex gap-3 justify-end pt-2">
+          <div className="flex gap-2 sm:gap-3 justify-end pt-2 sm:pt-4">
             <button 
-              className={`px-4 py-2 rounded border font-medium ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100'}`} 
+              className={`px-3 sm:px-4 py-2 rounded border font-medium text-xs sm:text-base ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-200 hover:bg-gray-600' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100'}`} 
               onClick={onClose}
             >
               Abbrechen
@@ -1578,30 +1578,30 @@ function History({
   }, [sorted, transactions]);
 
   return (
-    <div className="mt-6">
-      <div className="mb-4">
-        <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Historie</h3>
-        <div className={`grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 p-4 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-300'}`}>
+    <div className="mt-4 sm:mt-6">
+      <div className="mb-3 sm:mb-4">
+        <h3 className={`text-lg sm:text-xl font-bold mb-3 sm:mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>Historie</h3>
+        <div className={`grid grid-cols-1 gap-2 sm:gap-3 mb-3 sm:mb-4 p-2 sm:p-4 rounded-lg border ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-300'}`}>
           <input
             type="text"
             placeholder="Nach Beschreibung suchen..."
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            className={`w-full px-4 py-2 rounded border font-medium transition ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-600 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
+            className={`w-full px-2 sm:px-4 py-2 sm:py-2 rounded border font-medium text-xs sm:text-base transition ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-600 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
           />
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as any)}
-            className={`w-full px-4 py-2 rounded border font-medium transition ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
+            className={`w-full px-2 sm:px-4 py-2 sm:py-2 rounded border font-medium text-xs sm:text-base transition ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
           >
             <option value="ALL">Alle Typen</option>
             <option value="EARNED">Hinzugefügt</option>
             <option value="SPENT">Abgezogen</option>
           </select>
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium whitespace-nowrap ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Sortiert nach: {sortKey === 'date' ? 'Datum' : sortKey === 'description' ? 'Beschreibung' : 'Stunden'}</span>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0">
+            <span className={`text-xs sm:text-sm font-medium whitespace-nowrap ${darkMode ? 'text-gray-300' : 'text-gray-900'}`}>Sortiert nach: {sortKey === 'date' ? 'Datum' : sortKey === 'description' ? 'Beschreibung' : 'Stunden'}</span>
             <button
-              className={`px-3 py-1 border rounded font-medium ${darkMode ? 'bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-300' : 'bg-white hover:bg-gray-100 border-gray-300 text-gray-900'}`}
+              className={`px-2 sm:px-3 py-1 border rounded font-medium text-xs sm:text-base ${darkMode ? 'bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-300' : 'bg-white hover:bg-gray-100 border-gray-300 text-gray-900'}`}
               onClick={onToggleSortDir}
               title="Sortierreihenfolge umschalten"
             >
@@ -1610,13 +1610,13 @@ function History({
           </div>
         </div>
       </div>
-      <div className={`rounded-xl shadow-xl border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} max-h-[440px] overflow-y-auto overflow-x-auto themed-scrollbar ${darkMode ? 'ts-dark' : 'ts-light'}`}>
-        <table className="min-w-full text-left text-sm">
-          <thead className={`sticky top-0 z-10 ${darkMode ? 'bg-gray-900/95 backdrop-blur border-b border-gray-700' : 'bg-gray-50/95 backdrop-blur border-b border-gray-200'}`}>
+      <div className={`rounded-xl shadow-xl border overflow-x-auto ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} max-h-[440px] overflow-y-auto themed-scrollbar ${darkMode ? 'ts-dark' : 'ts-light'}`}>
+        <table className="w-full text-left text-xs sm:text-sm">
+          <thead className={`sticky top-0 z-10 text-xs sm:text-sm ${darkMode ? 'bg-gray-900/95 backdrop-blur border-b border-gray-700' : 'bg-gray-50/95 backdrop-blur border-b border-gray-200'}`}>
             <tr className={`font-bold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-              <th className="px-3 py-2">
+              <th className="px-2 sm:px-3 py-2">
                 <button 
-                  className="hover:underline flex items-center gap-1"
+                  className="hover:underline flex items-center gap-1 text-xs sm:text-sm"
                   onClick={() => {
                     if (sortKey === 'date') {
                       onToggleSortDir();
@@ -1628,7 +1628,7 @@ function History({
                   Datum {sortKey === 'date' && (sortDir === 'asc' ? '▲' : '▼')}
                 </button>
               </th>
-              <th className={`px-3 py-2 font-bold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+              <th className={`px-2 sm:px-3 py-2 font-bold text-xs sm:text-sm ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
                 <button 
                   className={`hover:underline flex items-center gap-1 ${darkMode ? 'text-gray-200' : 'text-gray-900'}`} 
                   onClick={() => {
@@ -1639,10 +1639,10 @@ function History({
                     }
                   }}
                 >
-                  Beschreibung {sortKey === 'description' && (sortDir === 'asc' ? '▲' : '▼')}
+                  <span className="hidden sm:inline">Beschreibung</span><span className="sm:hidden">Beschr.</span> {sortKey === 'description' && (sortDir === 'asc' ? '▲' : '▼')}
                 </button>
               </th>
-              <th className={`px-3 py-2 font-bold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+              <th className={`px-2 sm:px-3 py-2 font-bold text-xs sm:text-sm ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
                 <button 
                   className={`hover:underline flex items-center gap-1 ${darkMode ? 'text-gray-200' : 'text-gray-900'}`} 
                   onClick={() => {
@@ -1653,35 +1653,35 @@ function History({
                     }
                   }}
                 >
-                  Stunden {sortKey === 'minutes' && (sortDir === 'asc' ? '▲' : '▼')}
+                  Std {sortKey === 'minutes' && (sortDir === 'asc' ? '▲' : '▼')}
                 </button>
               </th>
-              <th className={`px-3 py-2 font-bold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Laufender Saldo</th>
-              <th className={`px-3 py-2 font-bold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Aktionen</th>
+              <th className={`px-2 sm:px-3 py-2 font-bold text-xs sm:text-sm ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Saldo</th>
+              <th className={`px-2 sm:px-3 py-2 font-bold text-xs sm:text-sm ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Akt.</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((t) => (
-              <tr key={t._id || `${t.date}-${t.description}-${t.minutes}`} className={`border-b ${darkMode ? 'border-gray-750 hover:bg-gray-800/70 odd:bg-gray-900/60 even:bg-gray-850/60' : 'border-gray-200 hover:bg-gray-50 odd:bg-white even:bg-gray-50/60'} transition-colors`}>
-                <td className={`px-3 py-3 font-medium whitespace-nowrap ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>{formatDateWithFormat(t.date, dateFormat)}</td>
-                <td className={`px-3 py-3 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{t.description}</td>
-                <td className={`px-3 py-3 text-right font-mono font-bold ${t.type === 'EARNED' ? (darkMode ? 'text-green-300' : 'text-green-700') : (darkMode ? 'text-red-300' : 'text-red-700')}`}>
+              <tr key={t._id || `${t.date}-${t.description}-${t.minutes}`} className={`border-b text-xs sm:text-base ${darkMode ? 'border-gray-750 hover:bg-gray-800/70 odd:bg-gray-900/60 even:bg-gray-850/60' : 'border-gray-200 hover:bg-gray-50 odd:bg-white even:bg-gray-50/60'} transition-colors`}>
+                <td className={`px-2 sm:px-3 py-2 sm:py-3 font-medium whitespace-nowrap ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>{formatDateWithFormat(t.date, dateFormat)}</td>
+                <td className={`px-2 sm:px-3 py-2 sm:py-3 font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}><span className="hidden sm:inline">{t.description}</span><span className="sm:hidden">{t.description.substring(0, 10)}{t.description.length > 10 ? '...' : ''}</span></td>
+                <td className={`px-2 sm:px-3 py-2 sm:py-3 text-right font-mono font-bold ${t.type === 'EARNED' ? (darkMode ? 'text-green-300' : 'text-green-700') : (darkMode ? 'text-red-300' : 'text-red-700')}`}>
                   {t.type === 'EARNED' ? '+' : '-'}{formatHMM(t.minutes)}
                 </td>
-                <td className={`px-3 py-3 text-right font-mono font-bold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                <td className={`px-2 sm:px-3 py-2 sm:py-3 text-right font-mono font-bold ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
                   {formatHMM((rows.find(r => r._id === t._id)?.running) || 0)}
                 </td>
-                <td className="px-3 py-2 text-right space-x-2 whitespace-nowrap">
+                <td className="px-2 sm:px-3 py-2 sm:py-2 text-right space-x-1 sm:space-x-2 whitespace-nowrap">
                   {t._id ? (
                     <>
                       <button
-                        className={`px-2.5 py-1 text-xs font-bold rounded-full text-white shadow-sm transition ${darkMode ? 'bg-blue-600 hover:bg-blue-500' : 'bg-blue-600 hover:bg-blue-500'}`}
+                        className={`px-1.5 sm:px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full text-white shadow-sm transition ${darkMode ? 'bg-blue-600 hover:bg-blue-500' : 'bg-blue-600 hover:bg-blue-500'}`}
                         onClick={() => onEdit(t)}
                       >
                         Bearbeiten
                       </button>
                       <button
-                        className={`px-2.5 py-1 text-xs font-bold rounded-full text-white shadow-sm transition ${darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-600 hover:bg-red-500'}`}
+                        className={`px-1.5 sm:px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-full text-white shadow-sm transition ${darkMode ? 'bg-red-700 hover:bg-red-600' : 'bg-red-600 hover:bg-red-500'}`}
                         onClick={() => {
                           if (confirm('Diesen Eintrag wirklich löschen?')) onDelete(t._id!);
                         }}
