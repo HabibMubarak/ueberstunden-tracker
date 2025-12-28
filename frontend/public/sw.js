@@ -1,5 +1,5 @@
 // Service Worker für PWA Unterstützung
-const CACHE_NAME = 'zeiterfassung-v1';
+const CACHE_NAME = 'zeiterfassung-v2'; // Version erhöht um Cache zu invalidieren
 const urlsToCache = [
   '/',
   '/index.html',
@@ -20,8 +20,14 @@ self.addEventListener('install', event => {
 
 // Fetch event - Network first, fall back to cache
 self.addEventListener('fetch', event => {
-  // Nur GET Requests
+  // Nur GET Requests und nur http/https URLs
   if (event.request.method !== 'GET') {
+    return;
+  }
+  
+  // Filter unsupported schemes (chrome-extension, data, blob, etc.)
+  const url = new URL(event.request.url);
+  if (!url.protocol.startsWith('http')) {
     return;
   }
 
@@ -34,7 +40,9 @@ self.addEventListener('fetch', event => {
         }
         const responseToCache = response.clone();
         caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, responseToCache);
+          cache.put(event.request, responseToCache).catch(() => {
+            // Ignore cache errors
+          });
         });
         return response;
       })
