@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import { TransactionModel } from '../models/Transaction.js';
+import multer from 'multer';
+import { parse } from 'csv-parse/sync';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Create a transaction
 router.post('/', async (req, res) => {
@@ -109,6 +112,84 @@ router.delete('/:id', async (req, res) => {
     res.status(204).send();
   } catch (err) {
     res.status(500).json({ message: 'Failed to delete transaction', error: String(err) });
+  }
+});
+
+// Import transactions from CSV
+router.post('/import/csv', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No CSV file provided' });
+    }
+
+    const csvContent = req.file.buffer.toString('utf-8');
+    const records = parse(csvContent, {
+      columns: true,
+      skip_empty_lines: true,
+      trim: true,
+    }) as any[];
+
+    if (records.length === 0) {
+      return res.status(400).json({ message: 'CSV file is empty' });
+    }
+
+    const importedTransactions = [];
+    const errors = [];
+
+    for (let i = 0; i < records.length; i++) {
+      const row = records[i];
+      
+      try {
+        // Parse CSV fields (handle various column names)
+        const date = String(row.date || row.Date || row.Datum || '').slice(0, 10);
+        const type = String(row.type || row.Type || row.Typ || '').toUpperCase();
+        const description = row.description || row.Description || row.Beschreibung || '';
+        
+        let minutes: number | null = null;
+        if (row.minutes !== undefined && row.minutes !== null && row.minutes !== '') {
+          minutes = parseInt(String(row.minutes), 10);
+        } else if (row.hours !== undefined && row.hours !== null && row.hours !== '') {
+          minutes = Math.round(parseFloat(String(row.hours)) * 60);
+        }
+
+        // Validation
+        if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+          errors.push({ row: i + 2, error: 'Invalid date format (expected YYYY-MM-DD)' });
+          continue;
+        }
+        if (!['EARNED', 'SPENT'].includes(type)) {
+          errors.push({ row: i + 2, error: 'Invalid type (must be EARNED or SPENT)' });
+          continue;
+        }
+        if (minutes == null || !Number.isFinite(minutes) || minutes <= 0 || !Number.isInteger(minutes)) {
+          errors.push({ row: i + 2, error: 'Invalid minutes/hours value' });
+          continue;
+        }
+        if (!description) {
+          errors.push({ row: i + 2, error: 'Description is required' });
+          continue;
+        }
+
+        const tx = await TransactionModel.create({
+          date,
+          type,
+          minutes,
+          description,
+        });
+
+        importedTransactions.push(tx);
+      } catch (rowErr) {
+        errors.push({ row: i + 2, error: String(rowErr) });
+      }
+    }
+
+    res.status(200).json({
+      imported: importedTransactions.length,
+      errors,
+      message: `${importedTransactions.length} transactions imported successfully${errors.length > 0 ? `, ${errors.length} errors` : ''}`,
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to import CSV', error: String(err) });
   }
 });
 

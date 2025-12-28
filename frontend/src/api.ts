@@ -55,3 +55,11 @@ export async function updateTransaction(id: string, tx: Partial<Transaction>) {
       return false;
     }
   }
+export async function importCSV(file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await axios.post(`${baseURL}/transactions/import/csv`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data;
+}

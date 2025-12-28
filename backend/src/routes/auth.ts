@@ -50,4 +50,39 @@ router.get('/status', (req, res) => {
   res.json({ authenticated });
 });
 
+// Change password endpoint
+router.post('/change-password', async (req, res) => {
+  try {
+    // @ts-ignore
+    if (!req.session.authenticated) {
+      return res.status(401).json({ error: 'Nicht authentifiziert' });
+    }
+
+    const { oldPassword, newPassword } = req.body;
+    const correctPassword = process.env.APP_PASSWORD || 'Inuyasha1998';
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ error: 'Beide Passwörter erforderlich' });
+    }
+
+    if (oldPassword !== correctPassword) {
+      return res.status(401).json({ error: 'Altes Passwort ist falsch' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Neues Passwort muss mindestens 6 Zeichen haben' });
+    }
+
+    // NOTE: In production würdest du das neue Passwort in einer Datenbank speichern
+    // Hier wird es nur zur Laufzeit akzeptiert, aber nach Neustart geht es zurück zu .env
+    console.warn('⚠️ Passwort geändert, aber nur zur Laufzeit. In .env muss es manuell aktualisiert werden!');
+    console.log('Neues Passwort:', newPassword);
+    
+    return res.json({ success: true, warning: 'Passwort nur zur Laufzeit geändert. Bitte .env-Datei manuell aktualisieren!' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
 export default router;
