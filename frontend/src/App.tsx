@@ -1316,6 +1316,320 @@ function BalanceBadge({ balanceMinutes, darkMode }: { balanceMinutes: number; da
   );
 }
 
+function LiveTimer({ darkMode, onSave }: { darkMode: boolean; onSave: () => Promise<void> }) {
+  const [isRunning, setIsRunning] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [timerType, setTimerType] = useState<'EARNED' | 'SPENT'>('EARNED');
+  const [saveError, setSaveError] = useState('');
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+  const [description, setDescription] = useState('');
+  const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isRunning) {
+      intervalRef.current = setInterval(() => {
+        setElapsedSeconds(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isRunning]);
+
+  const hours = Math.floor(elapsedSeconds / 3600);
+  const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+  const seconds = elapsedSeconds % 60;
+
+  const toggleTimer = () => {
+    setIsRunning(!isRunning);
+  };
+
+  const resetTimer = () => {
+    setIsRunning(false);
+    setElapsedSeconds(0);
+    setSaveError('');
+    setShowSaveConfirm(false);
+    setDescription('');
+  };
+
+  const saveTimer = async () => {
+    if (elapsedSeconds === 0) return;
+    
+    const totalMinutes = Math.max(1, hours * 60 + minutes); // Mindestens 1 Minute
+    const now = new Date().toISOString().slice(0, 10);
+    
+    if (totalMinutes < 1) {
+      setSaveError('Mindestens 1 Minute erforderlich');
+      return;
+    }
+    
+    try {
+      setSaveError('');
+      await createTransaction({
+        date: now,
+        type: timerType,
+        minutes: totalMinutes,
+        description: description || `⏱️ Timer: ${hours}h ${minutes}m`
+      });
+      resetTimer();
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Fehler beim Speichern';
+      setSaveError(errorMsg);
+      console.error('Fehler beim Speichern:', err);
+    }
+  };
+
+  return (
+    <div className={`rounded-xl shadow-xl p-3 sm:p-6 border-2 ${darkMode ? 'bg-gradient-to-br from-blue-900/30 to-purple-900/30 border-blue-700' : 'bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200'}`}>
+      <h3 className={`text-sm sm:text-base font-semibold mb-3 ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>⏱️ Live Timer</h3>
+      
+      <div className={`text-3xl sm:text-4xl font-mono font-bold text-center mb-4 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+        {String(hours).padStart(2, '0')}:{String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+      </div>
+
+      <div className="flex gap-2 mb-4">
+        <select
+          value={timerType}
+          onChange={(e) => setTimerType(e.target.value as 'EARNED' | 'SPENT')}
+          disabled={isRunning}
+          className={`flex-1 px-2 py-1.5 rounded text-xs sm:text-sm border font-medium transition ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'}`}
+        >
+          <option value="EARNED">➕ Hinzufügen</option>
+          <option value="SPENT">➖ Abziehen</option>
+        </select>
+      </div>
+
+      {saveError && (
+        <div className={`text-xs p-2 rounded ${darkMode ? 'bg-red-900/30 text-red-300 border border-red-700/50' : 'bg-red-100 text-red-800 border border-red-300'}`}>
+          ⚠️ {saveError}
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        <button
+          onClick={toggleTimer}
+          className={`px-3 py-2 rounded font-medium text-xs sm:text-sm transition ${
+            isRunning
+              ? (darkMode ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-red-600 hover:bg-red-700 text-white')
+              : (darkMode ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-green-600 hover:bg-green-700 text-white')
+          }`}
+        >
+          {isRunning ? '⏸️ Pause' : '▶️ Start'}
+        </button>
+        <button
+          onClick={resetTimer}
+          disabled={elapsedSeconds === 0}
+          className={`px-3 py-2 rounded font-medium text-xs sm:text-sm transition ${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-100 disabled:opacity-50' : 'bg-gray-300 hover:bg-gray-400 text-gray-900 disabled:opacity-50'}`}
+        >
+          ↻ Reset
+        </button>
+      </div>
+      
+      <button
+        onClick={() => setShowSaveConfirm(true)}
+        disabled={elapsedSeconds === 0 || isRunning}
+        className={`w-full mt-2 px-3 py-2 rounded font-medium text-xs sm:text-sm transition ${darkMode ? 'bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50' : 'bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50'}`}
+      >
+        💾 Speichern
+      </button>
+
+      {showSaveConfirm && (
+        <TimerSaveModal
+          initialHours={hours}
+          initialMinutes={minutes}
+          timerType={timerType}
+          description={description}
+          onDescriptionChange={setDescription}
+          onConfirm={(editedHours, editedMinutes) => {
+            setShowSaveConfirm(false);
+            const totalMinutes = Math.max(1, editedHours * 60 + editedMinutes);
+            const now = new Date().toISOString().slice(0, 10);
+            
+            if (totalMinutes < 1) {
+              setSaveError('Mindestens 1 Minute erforderlich');
+              return;
+            }
+            
+            setSaveError('');
+            createTransaction({
+              date: now,
+              type: timerType,
+              minutes: totalMinutes,
+              description: description || `⏱️ Timer: ${editedHours}h ${editedMinutes}m`
+            })
+            .then(async () => {
+              await onSave();
+              resetTimer();
+            })
+            .catch((err: any) => {
+              const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Fehler beim Speichern';
+              setSaveError(errorMsg);
+              console.error('Fehler beim Speichern:', err);
+            });
+          }}
+          onCancel={() => setShowSaveConfirm(false)}
+          darkMode={darkMode}
+        />
+      )}
+    </div>
+  );
+}
+
+function TimerSaveModal({
+  initialHours,
+  initialMinutes,
+  timerType,
+  description,
+  onDescriptionChange,
+  onConfirm,
+  onCancel,
+  darkMode,
+}: {
+  initialHours: number;
+  initialMinutes: number;
+  timerType: 'EARNED' | 'SPENT';
+  description: string;
+  onDescriptionChange: (desc: string) => void;
+  onConfirm: (hours: number, minutes: number) => void;
+  onCancel: () => void;
+  darkMode: boolean;
+}) {
+  const [hoursInput, setHoursInput] = useState(initialHours);
+  const [minutesInput, setMinutesInput] = useState(initialMinutes);
+  return createPortal(
+    <div
+      className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/65' : 'bg-black/50'} backdrop-blur-md flex items-center justify-center z-50 p-4 sm:p-0`}
+      onClick={onCancel}
+    >
+      <div
+        className={`${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'} rounded-2xl shadow-2xl ring-1 ring-black/10 p-4 sm:p-5 md:p-6 w-full mx-auto max-w-sm sm:max-w-lg`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className={`text-lg sm:text-xl font-semibold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+          ⏱️ Timer speichern?
+        </h2>
+
+        <div className="mb-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label className="block">
+              <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Stunden</span>
+              <div className="relative mt-1">
+                <input
+                  type="number"
+                  step="1"
+                  min={0}
+                  className={`number-no-spinner w-full p-2 pr-10 rounded border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
+                  value={hoursInput.toString()}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    const num = v === '' ? 0 : Math.max(0, Math.floor(Number(v)) || 0);
+                    setHoursInput(num);
+                  }}
+                />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col">
+                  <button
+                    type="button"
+                    className={`h-4 w-6 text-[10px] rounded-t ${darkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                    onClick={() => setHoursInput((v) => Math.max(0, v + 1))}
+                    title="+1h"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    className={`h-4 w-6 text-[10px] rounded-b ${darkMode ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-300 hover:bg-gray-400 text-gray-900'}`}
+                    onClick={() => setHoursInput((v) => Math.max(0, v - 1))}
+                    title="-1h"
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+            </label>
+            <label className="block">
+              <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Minuten</span>
+              <div className="relative mt-1">
+                <input
+                  type="number"
+                  step="1"
+                  min={0}
+                  max={59}
+                  className={`number-no-spinner w-full p-2 pr-10 rounded border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
+                  value={minutesInput.toString()}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    const num = v === '' ? 0 : Math.max(0, Math.min(59, Math.floor(Number(v)) || 0));
+                    setMinutesInput(num);
+                  }}
+                />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col">
+                  <button
+                    type="button"
+                    className={`h-4 w-6 text-[10px] rounded-t ${darkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                    onClick={() => setMinutesInput((v) => Math.min(59, v + 1))}
+                    title="+1m"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    className={`h-4 w-6 text-[10px] rounded-b ${darkMode ? 'bg-gray-600 hover:bg-gray-500 text-white' : 'bg-gray-300 hover:bg-gray-400 text-gray-900'}`}
+                    onClick={() => setMinutesInput((v) => Math.max(0, v - 1))}
+                    title="-1m"
+                  >
+                    ▼
+                  </button>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+            <div className="space-y-1">
+              <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                <span className="font-medium">Typ:</span> {timerType === 'EARNED' ? '➕ Hinzufügen' : '➖ Abziehen'}
+              </div>
+              <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                <span className="font-medium">Datum:</span> {new Date().toISOString().slice(0, 10)}
+              </div>
+            </div>
+          </div>
+
+          <label className="block">
+            <span className={`text-sm font-medium ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>Beschreibung</span>
+            <input
+              type="text"
+              className={`w-full mt-1 p-2 rounded border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-2 focus:ring-blue-500' : 'bg-white border-gray-300 text-gray-900 focus:ring-2 focus:ring-blue-500'} focus:outline-none`}
+              value={description}
+              onChange={(e) => onDescriptionChange(e.target.value)}
+              placeholder="⏱️ Timer: z.B. Entwicklung, Meeting, etc."
+            />
+          </label>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className={`flex-1 px-4 py-2 rounded font-medium text-sm transition ${darkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-100' : 'bg-gray-300 hover:bg-gray-400 text-gray-900'}`}
+          >
+            Abbrechen
+          </button>
+          <button
+            onClick={() => onConfirm(hoursInput, minutesInput)}
+            className={`flex-1 px-4 py-2 rounded font-medium text-sm transition ${darkMode ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+          >
+            💾 Speichern
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function ActionButtons({ onAdd, onSpend }: { onAdd: () => void; onSpend: () => void }) {
   return (
     <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -2264,6 +2578,8 @@ export default function App() {
           </button>
         </div>
       <BalanceBadge balanceMinutes={balanceMinutes} darkMode={darkMode} />
+      
+      <LiveTimer darkMode={darkMode} onSave={refresh} />
       
       {/* Show earnings if hourly rate set */}
       {settings.hourlyRate > 0 && (

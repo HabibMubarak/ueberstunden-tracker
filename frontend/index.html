@@ -7,10 +7,31 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Überstunden-Tracker" />
+    <meta name="description" content="Einfache Überstunden- und Zeiterfassung mit Analysen und Export" />
+    <meta name="keywords" content="Überstunden, Zeiterfassung, Tracker, Zeit Management" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%231f2937' width='192' height='192'/><text x='50%' y='50%' font-size='120' font-weight='bold' fill='%2310b981' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>⏱</text></svg>" />
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%231f2937' width='180' height='180' rx='40'/><text x='50%' y='50%' font-size='100' font-weight='bold' fill='%2310b981' text-anchor='middle' dominant-baseline='middle' font-family='Arial'>⏱</text></svg>" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
     <title>Überstunden-Tracker</title>
   </head>
   <body class="bg-white dark:bg-gray-900">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {
+            // Service Worker optional - App funktioniert auch ohne
+          });
+        });
+      }
+    </script>
   </body>
 </html>
