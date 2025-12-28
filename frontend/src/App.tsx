@@ -347,8 +347,8 @@ function SettingsModal({
       setPasswordError(err.response?.data?.error || 'Passwortänderung fehlgeschlagen');
     }
   };
-    <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/70' : 'bg-black/60'} backdrop-blur-sm flex items-end sm:items-center justify-center z-[9999]`}>
-      <div className={`${darkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'} rounded-t-2xl sm:rounded-2xl shadow-2xl p-3 sm:p-5 md:p-6 w-full sm:mx-4 max-w-sm sm:max-w-2xl md:max-w-5xl max-h-[95vh] sm:max-h-[90vh] md:max-h-[85vh] overflow-hidden flex flex-col themed-scrollbar ${darkMode ? 'ts-dark' : 'ts-light'}`}>
+    <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/70' : 'bg-black/60'} backdrop-blur-sm flex items-center justify-center z-[9999] p-4 sm:p-0`}>
+      <div className={`${darkMode ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'} rounded-2xl shadow-2xl p-4 sm:p-5 md:p-6 w-full mx-auto max-w-sm sm:max-w-2xl md:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col themed-scrollbar ${darkMode ? 'ts-dark' : 'ts-light'}`}>
         <div className="flex items-center justify-between mb-2 sm:mb-4 pb-2 sm:pb-4 border-b" style={{ borderColor: darkMode ? '#374151' : '#e5e7eb' }}>
           <h3 className={`text-lg sm:text-xl font-semibold ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>📋 CSV Import Vorschau</h3>
           <button
@@ -876,8 +876,8 @@ function SettingsModal({
           </div>
         </div>
       ) : (
-      <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/65' : 'bg-black/50'} backdrop-blur-md flex items-end sm:items-center justify-center z-50`} onClick={onClose}>
-      <div className={`${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'} rounded-t-2xl sm:rounded-2xl shadow-2xl ring-1 ring-black/10 p-3 sm:p-5 md:p-6 w-full max-w-sm sm:max-w-lg md:max-w-3xl max-h-[95vh] sm:max-h-[90vh] md:max-h-[90vh] overflow-y-auto themed-scrollbar ${darkMode ? 'ts-dark' : 'ts-light'}`} onClick={(e) => e.stopPropagation()}>
+      <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/65' : 'bg-black/50'} backdrop-blur-md flex items-center justify-center z-50 p-4 sm:p-0`} onClick={onClose}>
+      <div className={`${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'} rounded-2xl shadow-2xl ring-1 ring-black/10 p-4 sm:p-5 md:p-6 w-full mx-auto max-w-sm sm:max-w-lg md:max-w-2xl max-h-[90vh] overflow-y-auto themed-scrollbar ${darkMode ? 'ts-dark' : 'ts-light'}`} onClick={(e) => e.stopPropagation()}>
         <h2 className={`text-xl sm:text-2xl font-semibold mb-3 sm:mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>⚙️ Einstellungen</h2>
         
         {/* Tabs */}
@@ -1377,8 +1377,8 @@ function TransactionModal({
   }, [date, hoursInput, minutesInput, description]);
 
   return createPortal(
-    <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/65' : 'bg-black/50'} backdrop-blur-md flex items-end sm:items-center justify-center z-50`} onClick={onClose}>
-      <div className={`${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'} rounded-t-2xl sm:rounded-2xl shadow-2xl ring-1 ring-black/10 p-3 sm:p-5 md:p-6 w-full max-w-sm sm:max-w-lg md:max-w-xl`} onClick={(e) => e.stopPropagation()}>
+    <div className={`fixed inset-0 w-screen h-screen ${darkMode ? 'bg-black/65' : 'bg-black/50'} backdrop-blur-md flex items-center justify-center z-50 p-4 sm:p-0`} onClick={onClose}>
+      <div className={`${darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'} rounded-2xl shadow-2xl ring-1 ring-black/10 p-4 sm:p-5 md:p-6 w-full mx-auto max-w-sm sm:max-w-lg md:max-w-xl`} onClick={(e) => e.stopPropagation()}>
         <h2 className={`text-lg sm:text-xl font-semibold mb-3 sm:mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
           {type === 'EARNED' ? '➕ Stunden Hinzufügen' : '➖ Stunden Abziehen'}
         </h2>
