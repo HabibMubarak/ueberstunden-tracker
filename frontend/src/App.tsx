@@ -1318,6 +1318,10 @@ function BalanceBadge({ balanceMinutes, darkMode }: { balanceMinutes: number; da
 
 function LiveTimer({ darkMode, onSave }: { darkMode: boolean; onSave: () => Promise<void> }) {
   const [isRunning, setIsRunning] = useState(false);
+  // keep startTime so we can recompute elapsedSeconds on each tick; this avoids
+  // weird resets when the component is re‑mounted or the interval is paused by
+  // the browser. startTime is stored as ms since epoch.
+  const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [timerType, setTimerType] = useState<'EARNED' | 'SPENT'>('EARNED');
   const [saveError, setSaveError] = useState('');
@@ -1325,10 +1329,13 @@ function LiveTimer({ darkMode, onSave }: { darkMode: boolean; onSave: () => Prom
   const [description, setDescription] = useState('');
   const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // update elapsedSeconds based on startTime whenever running
   useEffect(() => {
-    if (isRunning) {
+    if (isRunning && startTime !== null) {
+      // tick every second and compute from absolute time
       intervalRef.current = setInterval(() => {
-        setElapsedSeconds(prev => prev + 1);
+        const now = Date.now();
+        setElapsedSeconds(Math.floor((now - startTime) / 1000));
       }, 1000);
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -1337,19 +1344,29 @@ function LiveTimer({ darkMode, onSave }: { darkMode: boolean; onSave: () => Prom
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isRunning]);
+  }, [isRunning, startTime]);
 
   const hours = Math.floor(elapsedSeconds / 3600);
   const minutes = Math.floor((elapsedSeconds % 3600) / 60);
   const seconds = elapsedSeconds % 60;
 
+  // debug: log whenever the timer value changes so we can spot unexpected resets
+  useEffect(() => {
+    console.log('timer', elapsedSeconds, '->', hours, minutes, seconds);
+  }, [elapsedSeconds, hours, minutes, seconds]);
+
   const toggleTimer = () => {
+    if (!isRunning) {
+      // starting: remember the baseline so we can resume from existing elapsed
+      setStartTime(Date.now() - elapsedSeconds * 1000);
+    }
     setIsRunning(!isRunning);
   };
 
   const resetTimer = () => {
     setIsRunning(false);
     setElapsedSeconds(0);
+    setStartTime(null);
     setSaveError('');
     setShowSaveConfirm(false);
     setDescription('');
